@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>RS AI</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #070b18;
+      color: white;
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 600px;
+      margin: auto;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 15px;
+      background: linear-gradient(135deg, #7b2cff, #00d9ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      font-weight: bold;
+      box-shadow: 0 0 25px rgba(0, 217, 255, 0.3);
+    }
+
+    .logo-text {
+      font-size: 25px;
+      font-weight: bold;
+    }
+
+    .logo-text span {
+      color: #00d9ff;
+    }
+
+    .credits {
+      background: #11182d;
+      padding: 9px 13px;
+      border-radius: 20px;
+      font-size: 13px;
+      color: #b9c5df;
+    }
+
+    .welcome {
+      margin-bottom: 25px;
+    }
+
+    .welcome h1 {
+      font-size: 30px;
+      margin-bottom: 8px;
+    }
+
+    .welcome p {
+      color: #8994ad;
+      line-height: 1.5;
+    }
+
+    .tools {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+
+    .tool {
+      background: #11182d;
+      border: 1px solid #202b48;
+      border-radius: 18px;
+      padding: 18px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .tool:hover {
+      transform: translateY(-2px);
+      border-color: #00d9ff;
+    }
+
+    .tool-icon {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .tool h3 {
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
+
+    .tool p {
+      color: #7e8aa5;
+      font-size: 12px;
+    }
+
+    .chat-box {
+      background: #11182d;
+      border: 1px solid #202b48;
+      border-radius: 20px;
+      padding: 15px;
+    }
+
+    .chat-box textarea {
+      width: 100%;
+      min-height: 90px;
+      resize: none;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: white;
+      font-size: 16px;
+      font-family: Arial, sans-serif;
+    }
+
+    .chat-box textarea::placeholder {
+      color: #68748e;
+    }
+
+    .chat-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .upload {
+      background: #1b2540;
+      border: none;
+      color: white;
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .send {
+      background: linear-gradient(135deg, #7b2cff, #00bfff);
+      border: none;
+      color: white;
+      padding: 11px 20px;
+      border-radius: 13px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .premium {
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: 18px;
+      background: linear-gradient(
+        135deg,
+        rgba(123, 44, 255, 0.25),
+        rgba(0, 217, 255, 0.12)
+      );
+      border: 1px solid #44317a;
+    }
+
+    .premium h3 {
+      margin-bottom: 6px;
+    }
+
+    .premium p {
+      color: #9ca8c0;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .premium button {
+      background: white;
+      color: #101426;
+      border: none;
+      padding: 10px 17px;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #message {
+      margin-top: 15px;
+      padding: 14px;
+      border-radius: 15px;
+      background: #0c1326;
+      color: #c8d2e8;
+      display: none;
+      line-height: 1.5;
+    }
+
+    .footer {
+      text-align: center;
+      color: #59657d;
+      font-size: 12px;
+      margin-top: 30px;
+      padding-bottom: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+
+    <header class="header">
+
+      <div class="logo">
+        <div class="logo-icon">RS</div>
+
+        <div class="logo-text">
+          RS <span>AI</span>
+        </div>
+      </div>
+
+      <div class="credits">
+        ⚡ 20 Credits
+      </div>
+
+    </header>
+
+
+    <section class="welcome">
+
+      <h1>Hello 👋</h1>
+
+      <p>
+        Welcome to RS AI — your all-in-one artificial intelligence assistant.
+      </p>
+
+    </section>
+
+
+    <section class="tools">
+
+      <div class="tool" onclick="selectTool('Chat AI')">
+        <div class="tool-icon">🤖</div>
+        <h3>Chat AI</h3>
+        <p>Ask anything</p>
+      </div>
+
+      <div class="tool" onclick="selectTool('AI Image')">
+        <div class="tool-icon">🎨</div>
+        <h3>AI Image</h3>
+        <p>Create images</p>
+      </div>
+
+      <div class="tool" onclick="selectTool('AI Cartoon')">
+        <div class="tool-icon">🧑‍🎨</div>
+        <h3>AI Cartoon</h3>
+        <p>Create cartoons</p>
+      </div>
+
+      <div class="tool" onclick="selectTool('AI Reel')">
+        <div class="tool-icon">🎬</div>
+        <h3>AI Reel</h3>
+        <p>Create videos</p>
+      </div>
+
+      <div class="tool" onclick="selectTool('AI Music')">
+        <div class="tool-icon">🎵</div>
+        <h3>AI Music</h3>
+        <p>Create music</p>
+      </div>
+
+      <div class="tool" onclick="selectTool('AI Voice')">
+        <div class="tool-icon">🎙️</div>
+        <h3>AI Voice</h3>
+        <p>Voice tools</p>
+      </div>
+
+    </section>
+
+
+    <section class="chat-box">
+
+      <textarea
+        id="prompt"
+        placeholder="Ask RS AI anything..."
+      ></textarea>
+
+      <div class="chat-actions">
+
+        <label class="upload">
+          📎 Image
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            onchange="imageSelected()"
+          >
+        </label>
+
+        <button class="send" onclick="sendMessage()">
+          Send ➤
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <div id="message"></div>
+
+
+    <section class="premium">
+
+      <h3>💎 Upgrade to Premium</h3>
+
+      <p>
+        More credits, more AI tools and an ad-free experience.
+      </p>
+
+      <button onclick="premiumMessage()">
+        Premium — $5/month
+      </button>
+
+    </section>
+
+
+    <div class="footer">
+      RS AI • Your AI. Your creativity.
+    </div>
+
+  </div>
+
+
+  <script>
+
+    function selectTool(tool) {
+
+      const box = document.getElementById("prompt");
+
+      box.value = "";
+
+      box.placeholder = "What do you want RS AI to do with " + tool + "?";
+
+      box.focus();
+    }
+
+
+    function sendMessage() {
+
+      const prompt = document.getElementById("prompt").value.trim();
+
+      const message = document.getElementById("message");
+
+      if (!prompt) {
+
+        message.style.display = "block";
+
+        message.innerText =
+          "Please write something first.";
+
+        return;
+      }
+
+      message.style.display = "block";
+
+      message.innerText =
+        "RS AI is preparing your answer... 🤖";
+
+    }
+
+
+    function imageSelected() {
+
+      const message = document.getElementById("message");
+
+      message.style.display = "block";
+
+      message.innerText =
+        "Image selected successfully. 🖼️";
+
+    }
+
+
+    function premiumMessage() {
+
+      const message = document.getElementById("message");
+
+      message.style.display = "block";
+
+      message.innerText =
+        "Premium payment will be connected later. 💎";
+
+    }
+
+  </script>
+
+</body>
+</html>
