@@ -9,106 +9,101 @@ export default {
 
     const url = new URL(request.url);
 
-    if (url.pathname !== "/api/chat") {
-      return new Response("RS AI is running 🤖", {
-        status: 200
-      });
-    }
+    // API route
+    if (url.pathname === "/api/chat") {
 
-    if (request.method !== "POST") {
-      return json({
-        error: "Method not allowed"
-      }, 405);
-    }
-
-    try {
-
-      const body = await request.json();
-
-      const userMessage = body.message?.trim();
-
-      if (!userMessage) {
+      if (request.method !== "POST") {
         return json({
-          error: "Message is required."
-        }, 400);
+          error: "Method not allowed"
+        }, 405);
       }
 
-      const aiResponse = await fetch(
-        "https://api.openai.com/v1/responses",
-        {
-          method: "POST",
+      try {
+        const body = await request.json();
+        const userMessage = body.message?.trim();
 
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization":
-              `Bearer ${env.OPENAI_API_KEY}`
-          },
-
-          body: JSON.stringify({
-            model: "gpt-5.6-luna",
-            input: userMessage
-          })
+        if (!userMessage) {
+          return json({
+            error: "Message is required."
+          }, 400);
         }
-      );
 
-      const data = await aiResponse.json();
+        const aiResponse = await fetch(
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+          {
+            method: "POST",
 
-      if (!aiResponse.ok) {
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": env.GEMINI_API_KEY
+            },
+
+            body: JSON.stringify({
+              contents: [
+                {
+                  role: "user",
+                  parts: [
+                    {
+                      text: userMessage
+                    }
+                  ]
+                }
+              ]
+            })
+          }
+        );
+
+        const data = await aiResponse.json();
+
+        if (!aiResponse.ok) {
+          return json({
+            error:
+              data?.error?.message ||
+              "Gemini API error."
+          }, aiResponse.status);
+        }
+
+        const answer =
+          data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+          "I could not generate an answer.";
 
         return json({
-          error:
-            data?.error?.message ||
-            "AI API error."
-        }, aiResponse.status);
+          answer: answer
+        });
 
+      } catch (error) {
+
+        return json({
+          error: "Server error."
+        }, 500);
       }
-
-      const answer =
-        data.output_text ||
-        "I could not generate an answer.";
-
-      return json({
-        answer: answer
-      });
-
-    } catch (error) {
-
-      return json({
-        error: "Server error."
-      }, 500);
-
     }
+
+    // Serve index.html and other website files
+    return env.ASSETS.fetch(request);
   }
 };
 
 
 function corsHeaders() {
-
   return {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods":
-      "POST, OPTIONS",
-    "Access-Control-Allow-Headers":
-      "Content-Type"
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type"
   };
-
 }
 
 
 function json(data, status = 200) {
-
   return new Response(
     JSON.stringify(data),
     {
       status: status,
 
       headers: {
-        "Content-Type":
-          "application/json",
-
+        "Content-Type": "application/json",
         ...corsHeaders()
       }
     }
   );
-
 }
