@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -169,6 +169,11 @@
       cursor: pointer;
     }
 
+    .send:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .premium {
       margin-top: 20px;
       padding: 18px;
@@ -209,6 +214,7 @@
       color: #c8d2e8;
       display: none;
       line-height: 1.5;
+      white-space: pre-wrap;
     }
 
     .footer {
@@ -305,15 +311,20 @@
 
         <label class="upload">
           📎 Image
+
           <input
             type="file"
             accept="image/*"
             hidden
             onchange="imageSelected()"
           >
+
         </label>
 
-        <button class="send" onclick="sendMessage()">
+        <button
+          class="send"
+          onclick="sendMessage()"
+        >
           Send ➤
         </button>
 
@@ -355,17 +366,24 @@
 
       box.value = "";
 
-      box.placeholder = "What do you want RS AI to do with " + tool + "?";
+      box.placeholder =
+        "What do you want RS AI to do with " + tool + "?";
 
       box.focus();
     }
 
 
-    function sendMessage() {
+    async function sendMessage() {
 
-      const prompt = document.getElementById("prompt").value.trim();
+      const prompt =
+        document.getElementById("prompt").value.trim();
 
-      const message = document.getElementById("message");
+      const message =
+        document.getElementById("message");
+
+      const sendButton =
+        document.querySelector(".send");
+
 
       if (!prompt) {
 
@@ -377,17 +395,79 @@
         return;
       }
 
+
       message.style.display = "block";
 
       message.innerText =
-        "RS AI is preparing your answer... 🤖";
+        "RS AI is thinking... 🤖";
+
+
+      sendButton.disabled = true;
+
+      sendButton.innerText =
+        "Thinking...";
+
+
+      try {
+
+        const response = await fetch(
+          "/api/chat",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+              message: prompt
+            })
+          }
+        );
+
+
+        const data =
+          await response.json();
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            data.error ||
+            "Something went wrong."
+          );
+
+        }
+
+
+        message.innerText =
+          data.answer ||
+          "No answer received.";
+
+
+      } catch (error) {
+
+        console.error(error);
+
+        message.innerText =
+          "Sorry, RS AI could not answer right now. Please try again.";
+
+      } finally {
+
+        sendButton.disabled = false;
+
+        sendButton.innerText =
+          "Send ➤";
+
+      }
 
     }
 
 
     function imageSelected() {
 
-      const message = document.getElementById("message");
+      const message =
+        document.getElementById("message");
 
       message.style.display = "block";
 
@@ -399,7 +479,8 @@
 
     function premiumMessage() {
 
-      const message = document.getElementById("message");
+      const message =
+        document.getElementById("message");
 
       message.style.display = "block";
 
