@@ -1,43 +1,46 @@
 export default {
   async fetch(request, env) {
+    const cors = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    };
 
     if (request.method === "OPTIONS") {
-      return new Response(null, {
-        headers: corsHeaders()
-      });
+      return new Response(null, { headers: cors });
     }
 
     const url = new URL(request.url);
 
-    // API route
     if (url.pathname === "/api/chat") {
-
       if (request.method !== "POST") {
-        return json({
-          error: "Method not allowed"
-        }, 405);
+        return json({ error: "Method not allowed" }, 405, cors);
       }
 
       try {
+        if (!env.GEMINI_API_KEY) {
+          return json({
+            error: "GEMINI_API_KEY is missing in Cloudflare."
+          }, 500, cors);
+        }
+
         const body = await request.json();
-        const userMessage = body.message?.trim();
+        const userMessage = body?.message?.trim();
 
         if (!userMessage) {
           return json({
             error: "Message is required."
-          }, 400);
+          }, 400, cors);
         }
 
-        const aiResponse = await fetch(
+        const response = await fetch(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
           {
             method: "POST",
-
             headers: {
               "Content-Type": "application/json",
               "x-goog-api-key": env.GEMINI_API_KEY
             },
-
             body: JSON.stringify({
               contents: [
                 {
@@ -53,56 +56,46 @@ export default {
           }
         );
 
-        const data = await aiResponse.json();
+        const data = await response.json();
 
-        if (!aiResponse.ok) {
+        if (!response.ok) {
           return json({
-            error:
-              data?.error?.message ||
-              "Gemini API error."
-          }, aiResponse.status);
+            error: "Gemini API error",
+            status: response.status,
+            details: data?.error?.message || data
+          }, response.status, cors);
         }
 
         const answer =
-          data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-          "I could not generate an answer.";
+          data?.candidates?.[0]?.content?.parts
+            ?.map(part => part.text || "")
+            .join("") ||
+          "No answer was generated.";
 
         return json({
-          answer: answer
-        });
+          answer
+        }, 200, cors);
 
       } catch (error) {
-
         return json({
-          error: "Server error."
-        }, 500);
+          error: "Worker error",
+          details: error?.message || String(error)
+        }, 500, cors);
       }
     }
 
-    // Serve index.html and other website files
     return env.ASSETS.fetch(request);
   }
 };
 
-
-function corsHeaders() {
-  return {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type"
-  };
-}
-
-
-function json(data, status = 200) {
+function json(data, status, cors) {
   return new Response(
     JSON.stringify(data),
     {
-      status: status,
-
+      status,
       headers: {
         "Content-Type": "application/json",
-        ...corsHeaders()
+        ...cors
       }
     }
   );
