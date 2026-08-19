@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rs-ai",
+  "main": "_worker.js",
+  "compatibility_date": "2026-08-19",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS"
+  }
+}
