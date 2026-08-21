@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -105,6 +105,10 @@
       border-color: #00d9ff;
     }
 
+    .tool:active {
+      transform: scale(0.98);
+    }
+
     .tool-icon {
       font-size: 28px;
       margin-bottom: 10px;
@@ -148,6 +152,7 @@
       justify-content: space-between;
       align-items: center;
       margin-top: 10px;
+      gap: 10px;
     }
 
     .upload {
@@ -157,6 +162,7 @@
       padding: 10px 14px;
       border-radius: 12px;
       cursor: pointer;
+      display: inline-block;
     }
 
     .send {
@@ -215,6 +221,7 @@
       display: none;
       line-height: 1.5;
       white-space: pre-wrap;
+      word-break: break-word;
     }
 
     .footer {
@@ -224,6 +231,28 @@
       margin-top: 30px;
       padding-bottom: 20px;
     }
+
+    @media (max-width: 420px) {
+      .app {
+        padding: 15px;
+      }
+
+      .welcome h1 {
+        font-size: 27px;
+      }
+
+      .logo-text {
+        font-size: 22px;
+      }
+
+      .credits {
+        font-size: 11px;
+      }
+
+      .tool {
+        padding: 15px;
+      }
+    }
   </style>
 </head>
 
@@ -231,14 +260,19 @@
 
   <div class="app">
 
+    <!-- HEADER -->
     <header class="header">
 
       <div class="logo">
-        <div class="logo-icon">RS</div>
+
+        <div class="logo-icon">
+          RS
+        </div>
 
         <div class="logo-text">
           RS <span>AI</span>
         </div>
+
       </div>
 
       <div class="credits">
@@ -248,6 +282,7 @@
     </header>
 
 
+    <!-- WELCOME -->
     <section class="welcome">
 
       <h1>Hello 👋</h1>
@@ -259,60 +294,131 @@
     </section>
 
 
+    <!-- AI TOOLS -->
     <section class="tools">
 
       <div class="tool" onclick="selectTool('Chat AI')">
-        <div class="tool-icon">🤖</div>
-        <h3>Chat AI</h3>
-        <p>Ask anything</p>
+
+        <div class="tool-icon">
+          🤖
+        </div>
+
+        <h3>
+          Chat AI
+        </h3>
+
+        <p>
+          Ask anything
+        </p>
+
       </div>
+
 
       <div class="tool" onclick="selectTool('AI Image')">
-        <div class="tool-icon">🎨</div>
-        <h3>AI Image</h3>
-        <p>Create images</p>
+
+        <div class="tool-icon">
+          🎨
+        </div>
+
+        <h3>
+          AI Image
+        </h3>
+
+        <p>
+          Create images
+        </p>
+
       </div>
+
 
       <div class="tool" onclick="selectTool('AI Cartoon')">
-        <div class="tool-icon">🧑‍🎨</div>
-        <h3>AI Cartoon</h3>
-        <p>Create cartoons</p>
+
+        <div class="tool-icon">
+          🧑‍🎨
+        </div>
+
+        <h3>
+          AI Cartoon
+        </h3>
+
+        <p>
+          Create cartoons
+        </p>
+
       </div>
+
 
       <div class="tool" onclick="selectTool('AI Reel')">
-        <div class="tool-icon">🎬</div>
-        <h3>AI Reel</h3>
-        <p>Create videos</p>
+
+        <div class="tool-icon">
+          🎬
+        </div>
+
+        <h3>
+          AI Reel
+        </h3>
+
+        <p>
+          Create videos
+        </p>
+
       </div>
+
 
       <div class="tool" onclick="selectTool('AI Music')">
-        <div class="tool-icon">🎵</div>
-        <h3>AI Music</h3>
-        <p>Create music</p>
+
+        <div class="tool-icon">
+          🎵
+        </div>
+
+        <h3>
+          AI Music
+        </h3>
+
+        <p>
+          Create music
+        </p>
+
       </div>
 
+
       <div class="tool" onclick="selectTool('AI Voice')">
-        <div class="tool-icon">🎙️</div>
-        <h3>AI Voice</h3>
-        <p>Voice tools</p>
+
+        <div class="tool-icon">
+          🎙️
+        </div>
+
+        <h3>
+          AI Voice
+        </h3>
+
+        <p>
+          Voice tools
+        </p>
+
       </div>
 
     </section>
 
 
+    <!-- CHAT -->
     <section class="chat-box">
 
       <textarea
         id="prompt"
         placeholder="Ask RS AI anything..."
+        autocomplete="off"
       ></textarea>
+
 
       <div class="chat-actions">
 
         <label class="upload">
+
           📎 Image
 
           <input
+            id="imageInput"
             type="file"
             accept="image/*"
             hidden
@@ -321,8 +427,11 @@
 
         </label>
 
+
         <button
+          id="sendButton"
           class="send"
+          type="button"
           onclick="sendMessage()"
         >
           Send ➤
@@ -333,24 +442,32 @@
     </section>
 
 
+    <!-- MESSAGE / AI RESPONSE -->
     <div id="message"></div>
 
 
+    <!-- PREMIUM -->
     <section class="premium">
 
-      <h3>💎 Upgrade to Premium</h3>
+      <h3>
+        💎 Upgrade to Premium
+      </h3>
 
       <p>
         More credits, more AI tools and an ad-free experience.
       </p>
 
-      <button onclick="premiumMessage()">
+      <button
+        type="button"
+        onclick="premiumMessage()"
+      >
         Premium — $5/month
       </button>
 
     </section>
 
 
+    <!-- FOOTER -->
     <div class="footer">
       RS AI • Your AI. Your creativity.
     </div>
@@ -360,47 +477,63 @@
 
   <script>
 
+    // ==========================
+    // SELECT AI TOOL
+    // ==========================
+
     function selectTool(tool) {
 
-      const box = document.getElementById("prompt");
+      const box =
+        document.getElementById("prompt");
 
       box.value = "";
 
       box.placeholder =
-        "What do you want RS AI to do with " + tool + "?";
+        "What do you want RS AI to do with " +
+        tool +
+        "?";
 
       box.focus();
+
     }
 
+
+    // ==========================
+    // SEND MESSAGE TO RS AI
+    // ==========================
 
     async function sendMessage() {
 
       const prompt =
-        document.getElementById("prompt").value.trim();
+        document
+          .getElementById("prompt")
+          .value
+          .trim();
 
       const message =
         document.getElementById("message");
 
       const sendButton =
-        document.querySelector(".send");
+        document.getElementById("sendButton");
 
 
+      // Empty message
       if (!prompt) {
 
         message.style.display = "block";
 
         message.innerText =
-          "Please write something first.";
+          "Please write something first. ✍️";
 
         return;
       }
 
 
+      // Loading
       message.style.display = "block";
 
       message.innerText =
         "RS AI is thinking... 🤖";
-
 
       sendButton.disabled = true;
 
@@ -410,51 +543,95 @@
 
       try {
 
-        const response = await fetch(
-          "/api/chat",
-          {
-            method: "POST",
+        const response =
+          await fetch(
+            "/api/chat",
+            {
+              method: "POST",
 
-            headers: {
-              "Content-Type": "application/json"
-            },
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
 
-            body: JSON.stringify({
-              message: prompt
-            })
-          }
-        );
-
-
-        const data =
-          await response.json();
+              body: JSON.stringify({
+                message: prompt
+              })
+            }
+          );
 
 
-        if (!response.ok) {
+        // Read response safely
+        const text =
+          await response.text();
+
+        let data;
+
+        try {
+
+          data =
+            JSON.parse(text);
+
+        } catch {
 
           throw new Error(
-            data.error ||
-            "Something went wrong."
+            "Server returned an invalid response."
           );
 
         }
 
 
-        message.innerText =
-          data.answer ||
-          "No answer received.";
+        console.log(
+          "RS AI API response:",
+          data
+        );
+
+
+        // API error
+        if (!response.ok) {
+
+          throw new Error(
+            data.error ||
+            "API request failed."
+          );
+
+        }
+
+
+        // Successful answer
+        if (data.answer) {
+
+          message.innerText =
+            data.answer;
+
+        } else {
+
+          message.innerText =
+            "RS AI returned no answer.";
+
+        }
 
 
       } catch (error) {
 
-        console.error(error);
+        console.error(
+          "RS AI error:",
+          error
+        );
+
+
+        // IMPORTANT:
+        // Show the real error
+        // instead of hiding it.
 
         message.innerText =
-          "Sorry, RS AI could not answer right now. Please try again.";
+          "RS AI Error:\n\n" +
+          error.message;
 
       } finally {
 
-        sendButton.disabled = false;
+        sendButton.disabled =
+          false;
 
         sendButton.innerText =
           "Send ➤";
@@ -464,30 +641,80 @@
     }
 
 
+    // ==========================
+    // IMAGE SELECTED
+    // ==========================
+
     function imageSelected() {
+
+      const input =
+        document.getElementById("imageInput");
 
       const message =
         document.getElementById("message");
 
-      message.style.display = "block";
 
-      message.innerText =
-        "Image selected successfully. 🖼️";
+      if (
+        input.files &&
+        input.files.length > 0
+      ) {
+
+        const file =
+          input.files[0];
+
+        message.style.display =
+          "block";
+
+        message.innerText =
+          "Image selected successfully. 🖼️\n\n" +
+          file.name;
+
+      }
 
     }
 
+
+    // ==========================
+    // PREMIUM
+    // ==========================
 
     function premiumMessage() {
 
       const message =
         document.getElementById("message");
 
-      message.style.display = "block";
+      message.style.display =
+        "block";
 
       message.innerText =
         "Premium payment will be connected later. 💎";
 
     }
+
+
+    // ==========================
+    // ENTER TO SEND
+    // ==========================
+
+    document
+      .getElementById("prompt")
+      .addEventListener(
+        "keydown",
+        function(event) {
+
+          if (
+            event.key === "Enter" &&
+            !event.shiftKey
+          ) {
+
+            event.preventDefault();
+
+            sendMessage();
+
+          }
+
+        }
+      );
 
   </script>
 
