@@ -376,9 +376,7 @@
 
     <section class="premium">
 
-      <h3>
-        💎 Upgrade to Premium
-      </h3>
+      <h3>💎 Upgrade to Premium</h3>
 
       <p>
         More credits, more AI tools and an ad-free experience.
@@ -403,9 +401,9 @@
 
   <script>
 
-    // ==========================
-    // SELECT AI TOOL
-    // ==========================
+    // =========================
+    // SELECT TOOL
+    // =========================
 
     function selectTool(tool) {
 
@@ -423,9 +421,9 @@
     }
 
 
-    // ==========================
-    // SEND MESSAGE
-    // ==========================
+    // =========================
+    // SEND MESSAGE - STREAMING
+    // =========================
 
     async function sendMessage() {
 
@@ -442,7 +440,6 @@
         document.getElementById("sendButton");
 
 
-      // Check empty message
       if (!prompt) {
 
         message.style.display = "block";
@@ -454,11 +451,10 @@
       }
 
 
-      // Show loading
       message.style.display = "block";
 
       message.innerText =
-        "RS AI is thinking... 🤖";
+        "RS AI is thinking... ⚡";
 
       sendButton.disabled = true;
 
@@ -486,187 +482,143 @@
           );
 
 
-        // Get raw server response
-        const text =
-          await response.text();
-
-        console.log(
-          "RS AI raw response:",
-          text
-        );
-
-
-        // Convert JSON
-        let data;
-
-        try {
-
-          data =
-            JSON.parse(text);
-
-        } catch (parseError) {
-
-          throw new Error(
-            "Server returned an invalid response:\n" +
-            text
-          );
-
-        }
-
-
-        console.log(
-          "RS AI data:",
-          data
-        );
-
-
-        // ==========================
-        // IMPORTANT ERROR HANDLING
-        // ==========================
-
         if (!response.ok) {
 
-          const realError =
-            data?.details ||
-            data?.error ||
-            "Unknown API error.";
+          const errorText =
+            await response.text();
 
-          throw new Error(
-            realError
-          );
-        }
+          let errorData;
 
+          try {
 
-        // ==========================
-        // SUCCESS
-        // ==========================
+            errorData =
+              JSON.parse(errorText);
 
-        if (
-          data &&
-          typeof data.answer === "string" &&
-          data.answer.trim()
-        ) {
+          } catch {
 
-          message.innerText =
-            data.answer;
-
-        } else {
-
-          throw new Error(
-            "Gemini returned no answer."
-          );
-
-        }
-
-
-      } catch (error) {
-
-        console.error(
-          "RS AI ERROR:",
-          error
-        );
-
-
-        message.style.display =
-          "block";
-
-        message.innerText =
-          "RS AI Error:\n\n" +
-          (
-            error?.message ||
-            String(error)
-          );
-
-      } finally {
-
-        sendButton.disabled =
-          false;
-
-        sendButton.innerText =
-          "Send ➤";
-
-      }
-
-    }
-
-
-    // ==========================
-    // IMAGE
-    // ==========================
-
-    function imageSelected() {
-
-      const input =
-        document.getElementById(
-          "imageInput"
-        );
-
-      const message =
-        document.getElementById(
-          "message"
-        );
-
-
-      if (
-        input.files &&
-        input.files.length > 0
-      ) {
-
-        const file =
-          input.files[0];
-
-        message.style.display =
-          "block";
-
-        message.innerText =
-          "Image selected successfully. 🖼️\n\n" +
-          file.name;
-      }
-    }
-
-
-    // ==========================
-    // PREMIUM
-    // ==========================
-
-    function premiumMessage() {
-
-      const message =
-        document.getElementById(
-          "message"
-        );
-
-      message.style.display =
-        "block";
-
-      message.innerText =
-        "Premium payment will be connected later. 💎";
-    }
-
-
-    // ==========================
-    // ENTER TO SEND
-    // ==========================
-
-    document
-      .getElementById("prompt")
-      .addEventListener(
-        "keydown",
-        function(event) {
-
-          if (
-            event.key === "Enter" &&
-            !event.shiftKey
-          ) {
-
-            event.preventDefault();
-
-            sendMessage();
+            errorData = {
+              error: errorText
+            };
           }
+
+
+          throw new Error(
+            errorData.details ||
+            errorData.error ||
+            "API request failed."
+          );
         }
-      );
 
-  </script>
 
-</body>
-</html>
+        if (!response.body) {
+
+          throw new Error(
+            "Streaming is not supported."
+          );
+        }
+
+
+        // =========================
+        // READ STREAM
+        // =========================
+
+        const reader =
+          response.body.getReader();
+
+        const decoder =
+          new TextDecoder("utf-8");
+
+        let buffer = "";
+
+        let fullAnswer = "";
+
+        message.innerText = "";
+
+
+        while (true) {
+
+          const result =
+            await reader.read();
+
+          if (result.done) {
+            break;
+          }
+
+
+          buffer +=
+            decoder.decode(
+              result.value,
+              {
+                stream: true
+              }
+            );
+
+
+          const lines =
+            buffer.split("\n");
+
+          buffer =
+            lines.pop() || "";
+
+
+          for (const line of lines) {
+
+            const trimmed =
+              line.trim();
+
+
+            if (!trimmed) {
+              continue;
+            }
+
+
+            // Gemini SSE format:
+            // data: {...}
+
+            if (
+              !trimmed.startsWith("data:")
+            ) {
+              continue;
+            }
+
+
+            const jsonText =
+              trimmed
+                .substring(5)
+                .trim();
+
+
+            if (!jsonText) {
+              continue;
+            }
+
+
+            try {
+
+              const data =
+                JSON.parse(jsonText);
+
+
+              const parts =
+                data
+                  ?.candidates?.[0]
+                  ?.content?.parts;
+
+
+              if (!Array.isArray(parts)) {
+                continue;
+              }
+
+
+              for (const part of parts) {
+
+                if (
+                  typeof part?.text ===
+                  "string"
+                ) {
+
+                  fullAnswer +=
+                    part.text;
+
+                  // SHOW IMMEDIATELY
+                  message.innerText =
