@@ -1,603 +1,860 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>RS AI</title>
+<title>RS AI</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-    body {
-      font-family: Arial, sans-serif;
-      background: #070b18;
-      color: white;
-      min-height: 100vh;
-    }
+body {
+  font-family: Arial, sans-serif;
+  background: #070b18;
+  color: white;
+  min-height: 100vh;
+}
 
-    .app {
-      max-width: 600px;
-      margin: auto;
-      min-height: 100vh;
-      padding: 20px;
-    }
+.app {
+  max-width: 700px;
+  margin: auto;
+  min-height: 100vh;
+  padding: 16px;
+}
 
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 30px;
-    }
+/* HEADER */
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  position: sticky;
+  top: 0;
+  background: #070b18;
+  padding: 8px 0;
+  z-index: 10;
+}
 
-    .logo-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 15px;
-      background: linear-gradient(135deg, #7b2cff, #00d9ff);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 19px;
-      font-weight: bold;
-      box-shadow: 0 0 25px rgba(0, 217, 255, 0.3);
-    }
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-    .logo-text {
-      font-size: 25px;
-      font-weight: bold;
-    }
+.logo-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 14px;
+  background: linear-gradient(135deg,#7b2cff,#00d9ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  box-shadow: 0 0 20px rgba(0,217,255,.3);
+}
 
-    .logo-text span {
-      color: #00d9ff;
-    }
+.logo-text {
+  font-size: 24px;
+  font-weight: bold;
+}
 
-    .credits {
-      background: #11182d;
-      padding: 9px 13px;
-      border-radius: 20px;
-      font-size: 13px;
-      color: #b9c5df;
-    }
+.logo-text span {
+  color: #00d9ff;
+}
 
-    .welcome {
-      margin-bottom: 25px;
-    }
+.credits {
+  background: #11182d;
+  padding: 8px 12px;
+  border-radius: 20px;
+  color: #b9c5df;
+  font-size: 12px;
+}
 
-    .welcome h1 {
-      font-size: 30px;
-      margin-bottom: 8px;
-    }
+/* WELCOME */
 
-    .welcome p {
-      color: #8994ad;
-      line-height: 1.5;
-    }
+.welcome {
+  margin-bottom: 20px;
+}
 
-    .tools {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 25px;
-    }
+.welcome h1 {
+  font-size: 28px;
+  margin-bottom: 7px;
+}
 
-    .tool {
-      background: #11182d;
-      border: 1px solid #202b48;
-      border-radius: 18px;
-      padding: 18px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
+.welcome p {
+  color: #8994ad;
+  line-height: 1.5;
+}
 
-    .tool:hover {
-      transform: translateY(-2px);
-      border-color: #00d9ff;
-    }
+/* TOOLS */
 
-    .tool:active {
-      transform: scale(0.98);
-    }
+.tools {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
 
-    .tool-icon {
-      font-size: 28px;
-      margin-bottom: 10px;
-    }
+.tool {
+  background: #11182d;
+  border: 1px solid #202b48;
+  border-radius: 16px;
+  padding: 14px;
+  cursor: pointer;
+  transition: .15s;
+}
 
-    .tool h3 {
-      font-size: 16px;
-      margin-bottom: 5px;
-    }
+.tool:hover {
+  border-color: #00d9ff;
+  transform: translateY(-2px);
+}
 
-    .tool p {
-      color: #7e8aa5;
-      font-size: 12px;
-    }
+.tool:active {
+  transform: scale(.97);
+}
 
-    .chat-box {
-      background: #11182d;
-      border: 1px solid #202b48;
-      border-radius: 20px;
-      padding: 15px;
-    }
+.tool-icon {
+  font-size: 25px;
+  margin-bottom: 7px;
+}
 
-    .chat-box textarea {
-      width: 100%;
-      min-height: 90px;
-      resize: none;
-      border: none;
-      outline: none;
-      background: transparent;
-      color: white;
-      font-size: 16px;
-      font-family: Arial, sans-serif;
-    }
+.tool h3 {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
 
-    .chat-box textarea::placeholder {
-      color: #68748e;
-    }
+.tool p {
+  color: #7e8aa5;
+  font-size: 11px;
+}
 
-    .chat-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 10px;
-      gap: 10px;
-    }
+/* CHAT HISTORY */
 
-    .upload {
-      background: #1b2540;
-      border: none;
-      color: white;
-      padding: 10px 14px;
-      border-radius: 12px;
-      cursor: pointer;
-      display: inline-block;
-    }
+#chatHistory {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
+}
 
-    .send {
-      background: linear-gradient(135deg, #7b2cff, #00bfff);
-      border: none;
-      color: white;
-      padding: 11px 20px;
-      border-radius: 13px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+.chat-message {
+  padding: 13px 15px;
+  border-radius: 16px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
 
-    .send:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
+.user-message {
+  background: linear-gradient(135deg,#34206e,#173b63);
+  align-self: flex-end;
+  max-width: 90%;
+}
 
-    .premium {
-      margin-top: 20px;
-      padding: 18px;
-      border-radius: 18px;
-      background: linear-gradient(
-        135deg,
-        rgba(123, 44, 255, 0.25),
-        rgba(0, 217, 255, 0.12)
-      );
-      border: 1px solid #44317a;
-    }
+.ai-message {
+  background: #11182d;
+  border: 1px solid #202b48;
+  align-self: flex-start;
+  max-width: 95%;
+}
 
-    .premium h3 {
-      margin-bottom: 6px;
-    }
+/* CHAT BOX */
 
-    .premium p {
-      color: #9ca8c0;
-      font-size: 13px;
-      margin-bottom: 12px;
-    }
+.chat-box {
+  background: #11182d;
+  border: 1px solid #202b48;
+  border-radius: 20px;
+  padding: 14px;
+  position: sticky;
+  bottom: 10px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.35);
+}
 
-    .premium button {
-      background: white;
-      color: #101426;
-      border: none;
-      padding: 10px 17px;
-      border-radius: 12px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+.chat-box textarea {
+  width: 100%;
+  min-height: 65px;
+  max-height: 180px;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: white;
+  font-size: 16px;
+  font-family: Arial,sans-serif;
+}
 
-    #message {
-      margin-top: 15px;
-      padding: 14px;
-      border-radius: 15px;
-      background: #0c1326;
-      color: #c8d2e8;
-      display: none;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
+.chat-box textarea::placeholder {
+  color: #68748e;
+}
 
-    .footer {
-      text-align: center;
-      color: #59657d;
-      font-size: 12px;
-      margin-top: 30px;
-      padding-bottom: 20px;
-    }
+.chat-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
 
-    @media (max-width: 420px) {
-      .app {
-        padding: 15px;
-      }
+.upload {
+  background: #1b2540;
+  color: white;
+  padding: 9px 13px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
 
-      .welcome h1 {
-        font-size: 27px;
-      }
+.send {
+  background: linear-gradient(135deg,#7b2cff,#00bfff);
+  border: none;
+  color: white;
+  padding: 11px 20px;
+  border-radius: 13px;
+  font-weight: bold;
+  cursor: pointer;
+}
 
-      .logo-text {
-        font-size: 22px;
-      }
+.send:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
 
-      .credits {
-        font-size: 11px;
-      }
+/* BUTTONS */
 
-      .tool {
-        padding: 15px;
-      }
-    }
-  </style>
+.bottom-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.new-chat {
+  flex: 1;
+  background: #11182d;
+  border: 1px solid #202b48;
+  color: white;
+  padding: 11px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.clear-chat {
+  background: #2a1620;
+  border: 1px solid #542333;
+  color: #ffb4c3;
+  padding: 11px 15px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+/* PREMIUM */
+
+.premium {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(
+    135deg,
+    rgba(123,44,255,.25),
+    rgba(0,217,255,.12)
+  );
+  border: 1px solid #44317a;
+}
+
+.premium h3 {
+  margin-bottom: 6px;
+}
+
+.premium p {
+  color: #9ca8c0;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.premium button {
+  background: white;
+  color: #101426;
+  border: none;
+  padding: 10px 17px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* STATUS */
+
+#status {
+  text-align: center;
+  color: #68748e;
+  font-size: 12px;
+  margin: 10px;
+}
+
+/* FOOTER */
+
+.footer {
+  text-align: center;
+  color: #59657d;
+  font-size: 12px;
+  margin-top: 25px;
+  padding-bottom: 20px;
+}
+
+@media(max-width:500px) {
+
+  .app {
+    padding: 12px;
+  }
+
+  .tools {
+    grid-template-columns: repeat(2,1fr);
+  }
+
+  .welcome h1 {
+    font-size: 25px;
+  }
+
+  .logo-text {
+    font-size: 21px;
+  }
+
+  .credits {
+    font-size: 10px;
+  }
+
+  .chat-box {
+    bottom: 5px;
+  }
+}
+</style>
 </head>
 
 <body>
 
-  <div class="app">
+<div class="app">
 
-    <header class="header">
+<!-- HEADER -->
 
-      <div class="logo">
+<header class="header">
 
-        <div class="logo-icon">
-          RS
-        </div>
+  <div class="logo">
 
-        <div class="logo-text">
-          RS <span>AI</span>
-        </div>
+    <div class="logo-icon">
+      RS
+    </div>
 
-      </div>
-
-      <div class="credits">
-        ⚡ 20 Credits
-      </div>
-
-    </header>
-
-
-    <section class="welcome">
-
-      <h1>Hello 👋</h1>
-
-      <p>
-        Welcome to RS AI — your all-in-one artificial intelligence assistant.
-      </p>
-
-    </section>
-
-
-    <section class="tools">
-
-      <div class="tool" onclick="selectTool('Chat AI')">
-        <div class="tool-icon">🤖</div>
-        <h3>Chat AI</h3>
-        <p>Ask anything</p>
-      </div>
-
-      <div class="tool" onclick="selectTool('AI Image')">
-        <div class="tool-icon">🎨</div>
-        <h3>AI Image</h3>
-        <p>Create images</p>
-      </div>
-
-      <div class="tool" onclick="selectTool('AI Cartoon')">
-        <div class="tool-icon">🧑‍🎨</div>
-        <h3>AI Cartoon</h3>
-        <p>Create cartoons</p>
-      </div>
-
-      <div class="tool" onclick="selectTool('AI Reel')">
-        <div class="tool-icon">🎬</div>
-        <h3>AI Reel</h3>
-        <p>Create videos</p>
-      </div>
-
-      <div class="tool" onclick="selectTool('AI Music')">
-        <div class="tool-icon">🎵</div>
-        <h3>AI Music</h3>
-        <p>Create music</p>
-      </div>
-
-      <div class="tool" onclick="selectTool('AI Voice')">
-        <div class="tool-icon">🎙️</div>
-        <h3>AI Voice</h3>
-        <p>Voice tools</p>
-      </div>
-
-    </section>
-
-
-    <section class="chat-box">
-
-      <textarea
-        id="prompt"
-        placeholder="Ask RS AI anything..."
-        autocomplete="off"
-      ></textarea>
-
-      <div class="chat-actions">
-
-        <label class="upload">
-
-          📎 Image
-
-          <input
-            id="imageInput"
-            type="file"
-            accept="image/*"
-            hidden
-            onchange="imageSelected()"
-          >
-
-        </label>
-
-        <button
-          id="sendButton"
-          class="send"
-          type="button"
-          onclick="sendMessage()"
-        >
-          Send ➤
-        </button>
-
-      </div>
-
-    </section>
-
-
-    <div id="message"></div>
-
-
-    <section class="premium">
-
-      <h3>💎 Upgrade to Premium</h3>
-
-      <p>
-        More credits, more AI tools and an ad-free experience.
-      </p>
-
-      <button
-        type="button"
-        onclick="premiumMessage()"
-      >
-        Premium — $5/month
-      </button>
-
-    </section>
-
-
-    <div class="footer">
-      RS AI • Your AI. Your creativity.
+    <div class="logo-text">
+      RS <span>AI</span>
     </div>
 
   </div>
 
+  <div class="credits">
+    ⚡ <span id="credits">20</span> Credits
+  </div>
 
-  <script>
-
-    // =========================
-    // SELECT TOOL
-    // =========================
-
-    function selectTool(tool) {
-
-      const box =
-        document.getElementById("prompt");
-
-      box.value = "";
-
-      box.placeholder =
-        "What do you want RS AI to do with " +
-        tool +
-        "?";
-
-      box.focus();
-    }
+</header>
 
 
-    // =========================
-    // SEND MESSAGE - STREAMING
-    // =========================
+<!-- WELCOME -->
 
-    async function sendMessage() {
+<section class="welcome">
 
-      const prompt =
-        document
-          .getElementById("prompt")
-          .value
-          .trim();
+  <h1>Hello 👋</h1>
 
-      const message =
-        document.getElementById("message");
+  <p>
+    Welcome to RS AI — your fast artificial intelligence assistant.
+  </p>
 
-      const sendButton =
-        document.getElementById("sendButton");
+</section>
 
 
-      if (!prompt) {
+<!-- TOOLS -->
 
-        message.style.display = "block";
+<section class="tools">
 
-        message.innerText =
-          "Please write something first. ✍️";
+  <div class="tool" onclick="selectTool('Chat AI')">
+    <div class="tool-icon">🤖</div>
+    <h3>Chat AI</h3>
+    <p>Ask anything</p>
+  </div>
 
-        return;
-      }
+  <div class="tool" onclick="selectTool('AI Image')">
+    <div class="tool-icon">🎨</div>
+    <h3>AI Image</h3>
+    <p>Create images</p>
+  </div>
+
+  <div class="tool" onclick="selectTool('AI Cartoon')">
+    <div class="tool-icon">🧑‍🎨</div>
+    <h3>AI Cartoon</h3>
+    <p>Create cartoons</p>
+  </div>
+
+  <div class="tool" onclick="selectTool('AI Reel')">
+    <div class="tool-icon">🎬</div>
+    <h3>AI Reel</h3>
+    <p>Create videos</p>
+  </div>
+
+  <div class="tool" onclick="selectTool('AI Music')">
+    <div class="tool-icon">🎵</div>
+    <h3>AI Music</h3>
+    <p>Create music</p>
+  </div>
+
+  <div class="tool" onclick="selectTool('AI Voice')">
+    <div class="tool-icon">🎙️</div>
+    <h3>AI Voice</h3>
+    <p>Voice tools</p>
+  </div>
+
+</section>
 
 
-      message.style.display = "block";
+<!-- CHAT HISTORY -->
 
-      message.innerText =
-        "RS AI is thinking... ⚡";
+<div id="chatHistory"></div>
 
-      sendButton.disabled = true;
+<div id="status"></div>
 
-      sendButton.innerText =
-        "Thinking...";
 
+<!-- CHAT INPUT -->
+
+<section class="chat-box">
+
+  <textarea
+    id="prompt"
+    placeholder="Ask RS AI anything..."
+    autocomplete="off"
+  ></textarea>
+
+  <div class="chat-actions">
+
+    <label class="upload">
+
+      📎 Image
+
+      <input
+        id="imageInput"
+        type="file"
+        accept="image/*"
+        hidden
+        onchange="imageSelected()"
+      >
+
+    </label>
+
+    <button
+      id="sendButton"
+      class="send"
+      type="button"
+      onclick="sendMessage()"
+    >
+      Send ➤
+    </button>
+
+  </div>
+
+</section>
+
+
+<!-- CHAT BUTTONS -->
+
+<div class="bottom-actions">
+
+  <button
+    class="new-chat"
+    onclick="newChat()"
+  >
+    ➕ New Chat
+  </button>
+
+  <button
+    class="clear-chat"
+    onclick="clearChat()"
+  >
+    🗑️ Clear
+  </button>
+
+</div>
+
+
+<!-- PREMIUM -->
+
+<section class="premium">
+
+  <h3>
+    💎 Upgrade to Premium
+  </h3>
+
+  <p>
+    More credits, more AI tools and an ad-free experience.
+  </p>
+
+  <button onclick="premiumMessage()">
+    Premium — $5/month
+  </button>
+
+</section>
+
+
+<div class="footer">
+  RS AI • Your AI. Your creativity.
+</div>
+
+</div>
+
+
+<script>
+
+/* =====================================
+   SESSION
+===================================== */
+
+let sessionId =
+  localStorage.getItem("rs_ai_session");
+
+if (!sessionId) {
+
+  sessionId =
+    "session_" +
+    Date.now() +
+    "_" +
+    Math.random()
+      .toString(36)
+      .substring(2,10);
+
+  localStorage.setItem(
+    "rs_ai_session",
+    sessionId
+  );
+}
+
+
+/* =====================================
+   LOCAL CHAT STORAGE
+===================================== */
+
+const STORAGE_KEY =
+  "rs_ai_chat_" + sessionId;
+
+
+function saveChat() {
+
+  const history =
+    document.getElementById(
+      "chatHistory"
+    ).innerHTML;
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    history
+  );
+}
+
+
+function loadChat() {
+
+  const history =
+    localStorage.getItem(
+      STORAGE_KEY
+    );
+
+  if (history) {
+
+    document.getElementById(
+      "chatHistory"
+    ).innerHTML = history;
+
+  }
+}
+
+
+loadChat();
+
+
+/* =====================================
+   ADD MESSAGE
+===================================== */
+
+function addMessage(
+  text,
+  type
+) {
+
+  const history =
+    document.getElementById(
+      "chatHistory"
+    );
+
+  const div =
+    document.createElement("div");
+
+  div.className =
+    "chat-message " +
+    (
+      type === "user"
+        ? "user-message"
+        : "ai-message"
+    );
+
+  div.textContent = text;
+
+  history.appendChild(div);
+
+  history.scrollTop =
+    history.scrollHeight;
+
+  saveChat();
+
+  return div;
+}
+
+
+/* =====================================
+   SELECT TOOL
+===================================== */
+
+function selectTool(tool) {
+
+  const box =
+    document.getElementById(
+      "prompt"
+    );
+
+  box.placeholder =
+    "What do you want RS AI to do with " +
+    tool +
+    "?";
+
+  box.focus();
+}
+
+
+/* =====================================
+   SEND MESSAGE
+===================================== */
+
+async function sendMessage() {
+
+  const input =
+    document.getElementById(
+      "prompt"
+    );
+
+  const sendButton =
+    document.getElementById(
+      "sendButton"
+    );
+
+  const prompt =
+    input.value.trim();
+
+  if (!prompt) {
+
+    input.focus();
+
+    return;
+  }
+
+
+  /* USER MESSAGE */
+
+  addMessage(
+    prompt,
+    "user"
+  );
+
+  input.value = "";
+
+
+  /* AI MESSAGE */
+
+  const aiMessage =
+    addMessage(
+      "RS AI is thinking... ⚡",
+      "ai"
+    );
+
+
+  sendButton.disabled =
+    true;
+
+  sendButton.innerText =
+    "⚡";
+
+
+  try {
+
+    const response =
+      await fetch(
+        "/api/chat",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+
+            message:
+              prompt,
+
+            sessionId:
+              sessionId
+
+          })
+        }
+      );
+
+
+    if (!response.ok) {
+
+      const errorText =
+        await response.text();
+
+      let errorData;
 
       try {
 
-        const response =
-          await fetch(
-            "/api/chat",
-            {
-              method: "POST",
+        errorData =
+          JSON.parse(errorText);
 
-              headers: {
-                "Content-Type":
-                  "application/json"
-              },
+      } catch {
 
-              body: JSON.stringify({
-                message: prompt
-              })
-            }
-          );
+        errorData = {
+          error:
+            errorText
+        };
+      }
+
+      throw new Error(
+        errorData.details ||
+        errorData.error ||
+        "API request failed."
+      );
+    }
 
 
-        if (!response.ok) {
+    /*
+      STREAMING RESPONSE
+    */
 
-          const errorText =
-            await response.text();
+    if (!response.body) {
 
-          let errorData;
+      throw new Error(
+        "No streaming response."
+      );
+    }
+
+
+    const reader =
+      response.body.getReader();
+
+    const decoder =
+      new TextDecoder();
+
+    let buffer = "";
+
+    let answer = "";
+
+    aiMessage.textContent = "";
+
+
+    while (true) {
+
+      const result =
+        await reader.read();
+
+      if (result.done)
+        break;
+
+
+      buffer +=
+        decoder.decode(
+          result.value,
+          {
+            stream: true
+          }
+        );
+
+
+      const lines =
+        buffer.split("\n");
+
+      buffer =
+        lines.pop() || "";
+
+
+      for (
+        const line
+        of lines
+      ) {
+
+        const trimmed =
+          line.trim();
+
+
+        if (!trimmed)
+          continue;
+
+
+        /*
+          SSE:
+          data: {...}
+        */
+
+        if (
+          trimmed.startsWith(
+            "data:"
+          )
+        ) {
+
+          const jsonText =
+            trimmed
+              .substring(5)
+              .trim();
+
+
+          if (
+            jsonText ===
+            "[DONE]"
+          ) {
+            continue;
+          }
+
 
           try {
 
-            errorData =
-              JSON.parse(errorText);
-
-          } catch {
-
-            errorData = {
-              error: errorText
-            };
-          }
+            const data =
+              JSON.parse(
+                jsonText
+              );
 
 
-          throw new Error(
-            errorData.details ||
-            errorData.error ||
-            "API request failed."
-          );
-        }
-
-
-        if (!response.body) {
-
-          throw new Error(
-            "Streaming is not supported."
-          );
-        }
-
-
-        // =========================
-        // READ STREAM
-        // =========================
-
-        const reader =
-          response.body.getReader();
-
-        const decoder =
-          new TextDecoder("utf-8");
-
-        let buffer = "";
-
-        let fullAnswer = "";
-
-        message.innerText = "";
-
-
-        while (true) {
-
-          const result =
-            await reader.read();
-
-          if (result.done) {
-            break;
-          }
-
-
-          buffer +=
-            decoder.decode(
-              result.value,
-              {
-                stream: true
-              }
-            );
-
-
-          const lines =
-            buffer.split("\n");
-
-          buffer =
-            lines.pop() || "";
-
-
-          for (const line of lines) {
-
-            const trimmed =
-              line.trim();
-
-
-            if (!trimmed) {
-              continue;
-            }
-
-
-            // Gemini SSE format:
-            // data: {...}
+            /*
+              Supports:
+              {text:"hello"}
+              and Gemini-style data
+            */
 
             if (
-              !trimmed.startsWith("data:")
+              typeof data.text ===
+              "string"
             ) {
-              continue;
-            }
 
+              answer +=
+                data.text;
 
-            const jsonText =
-              trimmed
-                .substring(5)
-                .trim();
-
-
-            if (!jsonText) {
-              continue;
-            }
-
-
-            try {
-
-              const data =
-                JSON.parse(jsonText);
-
+            } else {
 
               const parts =
                 data
@@ -605,20 +862,237 @@
                   ?.content?.parts;
 
 
-              if (!Array.isArray(parts)) {
-                continue;
-              }
+              if (
+                Array.isArray(parts)
+              ) {
 
-
-              for (const part of parts) {
-
-                if (
-                  typeof part?.text ===
-                  "string"
+                for (
+                  const part
+                  of parts
                 ) {
 
-                  fullAnswer +=
-                    part.text;
+                  if (
+                    typeof part.text ===
+                    "string"
+                  ) {
 
-                  // SHOW IMMEDIATELY
-                  message.innerText =
+                    answer +=
+                      part.text;
+                  }
+                }
+              }
+            }
+
+
+            aiMessage.textContent =
+              answer;
+
+            saveChat();
+
+            window.scrollTo({
+              top:
+                document.body
+                  .scrollHeight,
+              behavior:
+                "smooth"
+            });
+
+
+          } catch (e) {
+
+            console.log(
+              "Stream chunk:",
+              jsonText
+            );
+          }
+        }
+      }
+    }
+
+
+    if (!answer.trim()) {
+
+      aiMessage.textContent =
+        "RS AI did not return an answer.";
+
+    }
+
+
+    saveChat();
+
+
+  } catch (error) {
+
+    console.error(
+      "RS AI error:",
+      error
+    );
+
+    aiMessage.textContent =
+      "RS AI Error:\n\n" +
+      (
+        error.message ||
+        String(error)
+      );
+
+    saveChat();
+
+  } finally {
+
+    sendButton.disabled =
+      false;
+
+    sendButton.innerText =
+      "Send ➤";
+
+  }
+
+}
+
+
+/* =====================================
+   ENTER = SEND
+===================================== */
+
+document
+  .getElementById("prompt")
+  .addEventListener(
+    "keydown",
+    function(event) {
+
+      if (
+        event.key === "Enter" &&
+        !event.shiftKey
+      ) {
+
+        event.preventDefault();
+
+        sendMessage();
+      }
+
+    }
+  );
+
+
+/* =====================================
+   IMAGE
+===================================== */
+
+function imageSelected() {
+
+  const input =
+    document.getElementById(
+      "imageInput"
+    );
+
+  if (
+    input.files &&
+    input.files.length
+  ) {
+
+    const file =
+      input.files[0];
+
+    addMessage(
+      "🖼️ Image selected: " +
+      file.name,
+      "user"
+    );
+
+  }
+
+}
+
+
+/* =====================================
+   NEW CHAT
+===================================== */
+
+function newChat() {
+
+  const newSession =
+    "session_" +
+    Date.now() +
+    "_" +
+    Math.random()
+      .toString(36)
+      .substring(2,10);
+
+
+  localStorage.setItem(
+    "rs_ai_session",
+    newSession
+  );
+
+
+  sessionId =
+    newSession;
+
+
+  localStorage.setItem(
+    "rs_ai_chat_" + sessionId,
+    ""
+  );
+
+
+  document.getElementById(
+    "chatHistory"
+  ).innerHTML = "";
+
+
+  document.getElementById(
+    "prompt"
+  ).value = "";
+
+
+  document.getElementById(
+    "prompt"
+  ).focus();
+
+}
+
+
+/* =====================================
+   CLEAR CHAT
+===================================== */
+
+function clearChat() {
+
+  if (
+    !confirm(
+      "Delete this conversation?"
+    )
+  ) {
+    return;
+  }
+
+
+  document.getElementById(
+    "chatHistory"
+  ).innerHTML = "";
+
+
+  localStorage.removeItem(
+    STORAGE_KEY
+  );
+
+}
+
+
+/* =====================================
+   PREMIUM
+===================================== */
+
+function premiumMessage() {
+
+  addMessage(
+    "💎 Premium payment will be connected later.",
+    "ai"
+  );
+
+}
+
+</script>
+
+</body>
+</html>
