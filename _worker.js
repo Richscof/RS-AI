@@ -7,7 +7,10 @@ export default {
       "Access-Control-Allow-Headers": "Content-Type"
     };
 
+    // =========================
     // CORS
+    // =========================
+
     if (request.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
@@ -17,9 +20,9 @@ export default {
 
     const url = new URL(request.url);
 
-    // ==========================================
+    // =========================
     // RS AI CHAT
-    // ==========================================
+    // =========================
 
     if (url.pathname === "/api/chat") {
 
@@ -33,7 +36,10 @@ export default {
 
       try {
 
-        // Check API key
+        // =========================
+        // CHECK API KEY
+        // =========================
+
         if (!env.GEMINI_API_KEY) {
           return json(
             {
@@ -45,20 +51,11 @@ export default {
           );
         }
 
-        // Check D1
-        if (!env.DB) {
-          return json(
-            {
-              error:
-                "D1 database binding DB is missing."
-            },
-            500,
-            cors
-          );
-        }
+        // =========================
+        // READ USER MESSAGE
+        // =========================
 
-        const body =
-          await request.json();
+        const body = await request.json();
 
         const userMessage =
           typeof body?.message === "string"
@@ -66,411 +63,330 @@ export default {
             : "";
 
         const sessionId =
-          typeof body?.sessionId === "string"
+          typeof body?.sessionId === "string" &&
+          body.sessionId.trim()
             ? body.sessionId.trim()
-            : "default";
+            : crypto.randomUUID();
 
         if (!userMessage) {
           return json(
             {
-              error:
-                "Message is required."
+              error: "Message is required."
             },
             400,
             cors
           );
         }
 
-        // ======================================
+        // =========================
         // SAVE USER MESSAGE
-        // ======================================
+        // =========================
 
-        await env.DB.prepare(
-          `INSERT INTO conversations
-           (session_id, role, message)
-           VALUES (?, ?, ?)`
-        )
-        .bind(
-          sessionId,
-          "user",
-          userMessage
-        )
-        .run();
+        if (env.DB) {
+          try {
+            await env.DB.prepare(
+              `INSERT INTO conversations
+              (session_id, role, message)
+              VALUES (?, ?, ?)`
+            )
+              .bind(
+                sessionId,
+                "user",
+                userMessage
+              )
+              .run();
+          } catch (dbError) {
+            console.error(
+              "D1 save error:",
+              dbError
+            );
+          }
+        }
 
+        // =========================
+        // GET PREVIOUS CHAT
+        // =========================
 
-        // ======================================
-        // LOAD PREVIOUS CONVERSATION
-        // ======================================
+        let history = [];
 
-        const historyResult =
-          await env.DB.prepare(
-            `SELECT role, message
-             FROM conversations
-             WHERE session_id = ?
-             ORDER BY id DESC
-             LIMIT 20`
-          )
-          .bind(sessionId)
-          .all();
+        if (env.DB) {
+          try {
 
+            const result =
+              await env.DB.prepare(
+                `SELECT role, message
+                 FROM conversations
+                 WHERE session_id = ?
+                 ORDER BY id DESC
+                 LIMIT 20`
+              )
+                .bind(sessionId)
+                .all();
 
-        const history =
-          (historyResult.results || [])
-            .reverse();
+            history =
+              (result.results || [])
+                .reverse();
 
+          } catch (dbError) {
 
-        // ======================================
-        // CREATE GEMINI CONTENT
-        // ======================================
+            console.error(
+              "D1 history error:",
+              dbError
+            );
+          }
+        }
 
-        const contents =
-          history.map(item => ({
-            role:
-              item.role === "assistant"
-                ? "model"
-                : "user",
+        // =========================
+        // MULTI-LANGUAGE AI
+        // =========================
 
-            parts: [
-              {
-                text: item.message
-              }
-            ]
-          }));
+        const systemInstruction = `
+You are RS AI, a fast, helpful and intelligent AI assistant.
 
+LANGUAGE RULE:
+Automatically detect the language used by the user.
+Always answer in the same language as the user unless the user asks for another language.
 
-        // ======================================
-        // RS AI PERSONALITY
-        // ======================================
+You can communicate in many languages, including:
+Kirundi, English, French, Kiswahili, Spanish, Portuguese,
+Arabic, Chinese, Japanese, Korean, German, Italian,
+Dutch, Russian, Turkish, Hindi and other languages.
 
-        contents.unshift({
+If the user writes in Kirundi, answer naturally in Kirundi.
+If the user writes in French, answer in French.
+If the user writes in English, answer in English.
+
+Do not unnecessarily translate the user's message.
+
+Be clear, friendly, accurate and concise.
+Help with questions, coding, technology, education and everyday topics.
+
+Your name is RS AI.
+`;
+
+        // =========================
+        // BUILD CONTENTS
+        // =========================
+
+        const contents = [];
+
+        // Previous conversation
+        for (const item of history) {
+
+          if (
+            item.role === "user" ||
+            item.role === "assistant"
+          ) {
+
+            contents.push({
+              role: item.role,
+              parts: [
+                {
+                  text: item.message
+                }
+              ]
+            });
+
+          }
+        }
+
+        // Current message
+        contents.push({
           role: "user",
           parts: [
             {
-              text:
-                `You are RS AI, a fast and helpful
-AI assistant.
-
-You can communicate in:
-- Kirundi
-- French
-- English
-- Swahili
-- and other languages.
-
-Always answer in the same language
-the user uses unless they ask for another
-language.
-
-Be clear, friendly and useful.
-
-Keep answers reasonably concise so
-responses can be fast.`
+              text: userMessage
             }
           ]
         });
 
+        // =========================
+        // MODELS
+        // =========================
 
-        // ======================================
-        // GEMINI 3.6 FLASH
-        // ======================================
+        const models = [
+          "gemini-3.6-flash",
+          "gemini-2.5-flash"
+        ];
 
-        const response =
-          await fetch(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse",
-            {
-              method: "POST",
+        let finalData = null;
+        let finalResponse = null;
 
-              headers: {
-                "Content-Type":
-                  "application/json",
+        // =========================
+        // TRY MODELS
+        // =========================
 
-                "x-goog-api-key":
-                  env.GEMINI_API_KEY
-              },
+        for (const model of models) {
 
-              body: JSON.stringify({
-                contents: contents,
+          try {
 
-                generationConfig: {
-                  temperature: 0.7,
-                  maxOutputTokens: 1024
+            const response =
+              await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+                {
+                  method: "POST",
+
+                  headers: {
+                    "Content-Type":
+                      "application/json",
+
+                    "x-goog-api-key":
+                      env.GEMINI_API_KEY
+                  },
+
+                  body: JSON.stringify({
+                    systemInstruction: {
+                      parts: [
+                        {
+                          text:
+                            systemInstruction
+                        }
+                      ]
+                    },
+
+                    contents: contents,
+
+                    generationConfig: {
+                      temperature: 0.7,
+                      maxOutputTokens: 1024
+                    }
+                  })
                 }
-              })
+              );
+
+            const data =
+              await response.json();
+
+            console.log(
+              "Gemini model:",
+              model,
+              "status:",
+              response.status
+            );
+
+            // SUCCESS
+            if (response.ok) {
+
+              finalData = data;
+              finalResponse = response;
+
+              break;
             }
-          );
 
+            // TRY NEXT MODEL
+            console.error(
+              `Model ${model} failed:`,
+              JSON.stringify(data)
+            );
 
-        // ======================================
-        // GEMINI ERROR
-        // ======================================
+          } catch (modelError) {
 
-        if (!response.ok) {
+            console.error(
+              `Model ${model} request error:`,
+              modelError
+            );
 
-          const errorText =
-            await response.text();
+          }
+        }
 
-          console.error(
-            "Gemini error:",
-            errorText
-          );
+        // =========================
+        // ALL MODELS FAILED
+        // =========================
+
+        if (!finalData) {
 
           return json(
             {
               error:
-                "Gemini API error",
-
-              details:
-                errorText
+                "RS AI is temporarily busy. Please try again in a few seconds."
             },
-            response.status,
+            503,
             cors
           );
         }
 
+        // =========================
+        // GET ANSWER
+        // =========================
+
+        const answer =
+          finalData
+            ?.candidates?.[0]
+            ?.content
+            ?.parts
+            ?.map(
+              part =>
+                part?.text || ""
+            )
+            .join("")
+            .trim();
+
+        if (!answer) {
+
+          return json(
+            {
+              error:
+                "Gemini returned no answer."
+            },
+            502,
+            cors
+          );
+        }
+
+        // =========================
+        // SAVE AI ANSWER
+        // =========================
+
+        if (env.DB) {
+
+          try {
+
+            await env.DB.prepare(
+              `INSERT INTO conversations
+              (session_id, role, message)
+              VALUES (?, ?, ?)`
+            )
+              .bind(
+                sessionId,
+                "assistant",
+                answer
+              )
+              .run();
+
+          } catch (dbError) {
+
+            console.error(
+              "D1 assistant save error:",
+              dbError
+            );
 
-        // ======================================
-        // STREAM RESPONSE
-        // ======================================
-
-        const reader =
-          response.body.getReader();
-
-        const decoder =
-          new TextDecoder();
-
-        let buffer = "";
-
-        let fullAnswer = "";
-
-
-        const stream =
-          new ReadableStream({
-
-            async start(controller) {
-
-              try {
-
-                while (true) {
-
-                  const {
-                    value,
-                    done
-                  } =
-                    await reader.read();
-
-
-                  if (done) {
-                    break;
-                  }
-
-
-                  buffer +=
-                    decoder.decode(
-                      value,
-                      {
-                        stream: true
-                      }
-                    );
-
-
-                  const lines =
-                    buffer.split("\n");
-
-
-                  buffer =
-                    lines.pop() || "";
-
-
-                  for (
-                    const line
-                    of lines
-                  ) {
-
-                    const trimmed =
-                      line.trim();
-
-
-                    if (
-                      !trimmed ||
-                      !trimmed.startsWith("data:")
-                    ) {
-                      continue;
-                    }
-
-
-                    const dataText =
-                      trimmed
-                        .substring(5)
-                        .trim();
-
-
-                    if (
-                      !dataText ||
-                      dataText === "[DONE]"
-                    ) {
-                      continue;
-                    }
-
-
-                    try {
-
-                      const data =
-                        JSON.parse(
-                          dataText
-                        );
-
-
-                      const parts =
-                        data
-                          ?.candidates?.[0]
-                          ?.content?.parts;
-
-
-                      if (
-                        !Array.isArray(parts)
-                      ) {
-                        continue;
-                      }
-
-
-                      for (
-                        const part
-                        of parts
-                      ) {
-
-                        if (
-                          typeof part?.text !==
-                          "string"
-                        ) {
-                          continue;
-                        }
-
-
-                        const text =
-                          part.text;
-
-
-                        fullAnswer +=
-                          text;
-
-
-                        /*
-                         * Send text immediately
-                         * to index.html
-                         */
-
-                        controller.enqueue(
-                          new TextEncoder().encode(
-                            "data: " +
-                            JSON.stringify({
-                              text: text
-                            }) +
-                            "\n\n"
-                          )
-                        );
-
-                      }
-
-                    } catch (error) {
-
-                      console.error(
-                        "Chunk error:",
-                        error
-                      );
-
-                    }
-
-                  }
-
-                }
-
-
-                // =================================
-                // SAVE AI ANSWER TO D1
-                // =================================
-
-                if (
-                  fullAnswer.trim()
-                ) {
-
-                  await env.DB.prepare(
-                    `INSERT INTO conversations
-                     (session_id, role, message)
-                     VALUES (?, ?, ?)`
-                  )
-                  .bind(
-                    sessionId,
-                    "assistant",
-                    fullAnswer
-                  )
-                  .run();
-
-                }
-
-
-                controller.enqueue(
-                  new TextEncoder().encode(
-                    "data: [DONE]\n\n"
-                  )
-                );
-
-
-                controller.close();
-
-              } catch (error) {
-
-                console.error(
-                  "Streaming error:",
-                  error
-                );
-
-                controller.error(
-                  error
-                );
-
-              }
-
-            }
-
-          });
-
-
-        return new Response(
-          stream,
-          {
-            status: 200,
-
-            headers: {
-              ...cors,
-
-              "Content-Type":
-                "text/event-stream",
-
-              "Cache-Control":
-                "no-cache",
-
-              "Connection":
-                "keep-alive",
-
-              "X-Accel-Buffering":
-                "no"
-            }
           }
-        );
+        }
 
+        // =========================
+        // SUCCESS
+        // =========================
+
+        return json(
+          {
+            answer: answer,
+            sessionId: sessionId
+          },
+          200,
+          cors
+        );
 
       } catch (error) {
 
         console.error(
-          "Worker error:",
+          "RS AI Worker error:",
           error
         );
 
         return json(
           {
             error:
-              "Worker error",
-
+              "RS AI Worker error",
             details:
               error?.message ||
               String(error)
@@ -478,22 +394,16 @@ responses can be fast.`
           500,
           cors
         );
-
       }
-
     }
 
-
-    // ==========================================
+    // =========================
     // WEBSITE
-    // ==========================================
+    // =========================
 
     if (env.ASSETS) {
-      return env.ASSETS.fetch(
-        request
-      );
+      return env.ASSETS.fetch(request);
     }
-
 
     return new Response(
       "RS AI is running 🤖",
@@ -502,14 +412,13 @@ responses can be fast.`
         headers: cors
       }
     );
-
   }
 };
 
 
-// ==========================================
+// =========================
 // JSON FUNCTION
-// ==========================================
+// =========================
 
 function json(
   data,
@@ -519,7 +428,6 @@ function json(
 
   return new Response(
     JSON.stringify(data),
-
     {
       status: status,
 
@@ -531,4 +439,4 @@ function json(
       }
     }
   );
-                        }
+}
