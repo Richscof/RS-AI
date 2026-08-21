@@ -7,7 +7,7 @@ export default {
       "Access-Control-Allow-Headers": "Content-Type"
     };
 
-    // CORS preflight
+    // CORS
     if (request.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
@@ -34,7 +34,7 @@ export default {
 
       try {
 
-        // Check Gemini API key
+        // Check API key
         if (!env.GEMINI_API_KEY) {
           return json(
             {
@@ -64,11 +64,11 @@ export default {
         }
 
         // =========================
-        // GEMINI REQUEST
+        // GEMINI 3.6 FLASH
         // =========================
 
         const response = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
           {
             method: "POST",
 
@@ -92,7 +92,6 @@ export default {
           }
         );
 
-        // Read Gemini response
         const data = await response.json();
 
         // =========================
@@ -120,7 +119,7 @@ export default {
         }
 
         // =========================
-        // GET AI ANSWER
+        // GET ANSWER
         // =========================
 
         const answer =
@@ -193,7 +192,7 @@ export default {
 
 
 // =========================
-// JSON RESPONSE FUNCTION
+// JSON RESPONSE
 // =========================
 
 function json(data, status = 200, cors = {}) {
