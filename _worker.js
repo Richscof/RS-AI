@@ -3,11 +3,10 @@ export default {
 
     const cors = {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type"
     };
 
-    // CORS
     if (request.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
@@ -18,15 +17,13 @@ export default {
     const url = new URL(request.url);
 
     // =========================
-    // RS AI CHAT API
+    // RS AI CHAT
     // =========================
     if (url.pathname === "/api/chat") {
 
       if (request.method !== "POST") {
         return json(
-          {
-            error: "Method not allowed"
-          },
+          { error: "Method not allowed" },
           405,
           cors
         );
@@ -34,18 +31,17 @@ export default {
 
       try {
 
-        // Check API key
         if (!env.GEMINI_API_KEY) {
           return json(
             {
-              error: "GEMINI_API_KEY is missing in Cloudflare Variables and Secrets."
+              error:
+                "GEMINI_API_KEY is missing in Cloudflare."
             },
             500,
             cors
           );
         }
 
-        // Read request
         const body = await request.json();
 
         const userMessage =
@@ -64,17 +60,18 @@ export default {
         }
 
         // =========================
-        // GEMINI 3.6 FLASH
+        // FAST GEMINI STREAMING
         // =========================
 
         const response = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse",
           {
             method: "POST",
 
             headers: {
               "Content-Type": "application/json",
-              "x-goog-api-key": env.GEMINI_API_KEY
+              "x-goog-api-key":
+                env.GEMINI_API_KEY
             },
 
             body: JSON.stringify({
@@ -87,69 +84,65 @@ export default {
                     }
                   ]
                 }
-              ]
+              ],
+
+              generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 1024
+              }
             })
           }
         );
 
-        const data = await response.json();
-
-        // =========================
-        // GEMINI ERROR
-        // =========================
-
+        // Gemini error
         if (!response.ok) {
 
+          const errorText =
+            await response.text();
+
           console.error(
-            "Gemini API error:",
-            JSON.stringify(data)
+            "Gemini error:",
+            errorText
           );
 
-          return json(
-            {
+          return new Response(
+            JSON.stringify({
               error: "Gemini API error",
-              status: response.status,
-              details:
-                data?.error?.message ||
-                JSON.stringify(data)
-            },
-            response.status,
-            cors
-          );
-        }
-
-        // =========================
-        // GET ANSWER
-        // =========================
-
-        const answer =
-          data?.candidates?.[0]?.content?.parts
-            ?.map(part => part?.text || "")
-            .join("")
-            .trim();
-
-        if (!answer) {
-
-          return json(
+              details: errorText
+            }),
             {
-              error: "Gemini returned no answer.",
-              details: JSON.stringify(data)
-            },
-            502,
-            cors
+              status: response.status,
+              headers: {
+                "Content-Type":
+                  "application/json",
+                ...cors
+              }
+            }
           );
         }
 
         // =========================
-        // SUCCESS
+        // STREAM RESPONSE
         // =========================
 
-        return json(
+        return new Response(
+          response.body,
           {
-            answer: answer
-          },
-          200,
-          cors
+            status: 200,
+
+            headers: {
+              "Content-Type":
+                "text/event-stream",
+
+              "Cache-Control":
+                "no-cache, no-transform",
+
+              "Connection":
+                "keep-alive",
+
+              ...cors
+            }
+          }
         );
 
       } catch (error) {
@@ -173,7 +166,7 @@ export default {
     }
 
     // =========================
-    // WEBSITE FILES
+    // WEBSITE
     // =========================
 
     if (env.ASSETS) {
@@ -195,15 +188,20 @@ export default {
 // JSON RESPONSE
 // =========================
 
-function json(data, status = 200, cors = {}) {
-
+function json(
+  data,
+  status = 200,
+  cors = {}
+) {
   return new Response(
     JSON.stringify(data),
     {
       status: status,
 
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type":
+          "application/json",
+
         ...cors
       }
     }
