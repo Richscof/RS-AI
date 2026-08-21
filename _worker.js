@@ -1,9 +1,8 @@
 export default {
   async fetch(request, env) {
-
     const cors = {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type"
     };
 
@@ -20,7 +19,6 @@ export default {
     // RS AI CHAT
     // =========================
     if (url.pathname === "/api/chat") {
-
       if (request.method !== "POST") {
         return json(
           { error: "Method not allowed" },
@@ -30,18 +28,18 @@ export default {
       }
 
       try {
-
+        // Check API key
         if (!env.GEMINI_API_KEY) {
           return json(
             {
-              error:
-                "GEMINI_API_KEY is missing in Cloudflare."
+              error: "GEMINI_API_KEY is missing."
             },
             500,
             cors
           );
         }
 
+        // Read request
         const body = await request.json();
 
         const userMessage =
@@ -49,10 +47,18 @@ export default {
             ? body.message.trim()
             : "";
 
+        // Session ID
+        const sessionId =
+          typeof body?.sessionId === "string" &&
+          body.sessionId.trim()
+            ? body.sessionId.trim()
+            : crypto.randomUUID();
+
         if (!userMessage) {
           return json(
             {
-              error: "Message is required."
+              error: "Message is required.",
+              sessionId
             },
             400,
             cors
@@ -60,31 +66,79 @@ export default {
         }
 
         // =========================
-        // FAST GEMINI STREAMING
+        // LOAD OLD CONVERSATION
+        // =========================
+
+        let history = [];
+
+        if (env.DB) {
+          const result = await env.DB
+            .prepare(
+              `SELECT role, message
+               FROM conversations
+               WHERE session_id = ?
+               ORDER BY id ASC
+               LIMIT 30`
+            )
+            .bind(sessionId)
+            .all();
+
+          history = result.results || [];
+        }
+
+        // =========================
+        // BUILD GEMINI CONTENT
+        // =========================
+
+        const contents = history.map(row => ({
+          role:
+            row.role === "assistant"
+              ? "model"
+              : "user",
+          parts: [
+            {
+              text: row.message
+            }
+          ]
+        }));
+
+        contents.push({
+          role: "user",
+          parts: [
+            {
+              text: userMessage
+            }
+          ]
+        });
+
+        // =========================
+        // GEMINI
         // =========================
 
         const response = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse",
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
           {
             method: "POST",
 
             headers: {
               "Content-Type": "application/json",
-              "x-goog-api-key":
-                env.GEMINI_API_KEY
+              "x-goog-api-key": env.GEMINI_API_KEY
             },
 
             body: JSON.stringify({
-              contents: [
-                {
-                  role: "user",
-                  parts: [
-                    {
-                      text: userMessage
-                    }
-                  ]
-                }
-              ],
+              systemInstruction: {
+                parts: [
+                  {
+                    text:
+                      "You are RS AI, a fast, helpful and friendly AI assistant. " +
+                      "You can communicate in Kirundi, English, French and other languages. " +
+                      "Answer clearly and naturally. " +
+                      "If the user speaks Kirundi, answer in Kirundi."
+                  }
+                ]
+              },
+
+              contents: contents,
 
               generationConfig: {
                 temperature: 0.7,
@@ -94,61 +148,100 @@ export default {
           }
         );
 
-        // Gemini error
+        const data = await response.json();
+
+        // =========================
+        // GEMINI ERROR
+        // =========================
+
         if (!response.ok) {
-
-          const errorText =
-            await response.text();
-
           console.error(
             "Gemini error:",
-            errorText
+            JSON.stringify(data)
           );
 
-          return new Response(
-            JSON.stringify({
-              error: "Gemini API error",
-              details: errorText
-            }),
+          return json(
             {
-              status: response.status,
-              headers: {
-                "Content-Type":
-                  "application/json",
-                ...cors
-              }
-            }
+              error: "Gemini API error",
+              details:
+                data?.error?.message ||
+                "Unknown Gemini error.",
+              sessionId
+            },
+            response.status,
+            cors
           );
         }
 
         // =========================
-        // STREAM RESPONSE
+        // GET ANSWER
         // =========================
 
-        return new Response(
-          response.body,
+        const answer =
+          data?.candidates?.[0]?.content?.parts
+            ?.map(part => part?.text || "")
+            .join("")
+            .trim();
+
+        if (!answer) {
+          return json(
+            {
+              error: "Gemini returned no answer.",
+              sessionId
+            },
+            502,
+            cors
+          );
+        }
+
+        // =========================
+        // SAVE CONVERSATION
+        // =========================
+
+        if (env.DB) {
+          await env.DB.batch([
+            env.DB
+              .prepare(
+                `INSERT INTO conversations
+                 (session_id, role, message)
+                 VALUES (?, ?, ?)`
+              )
+              .bind(
+                sessionId,
+                "user",
+                userMessage
+              ),
+
+            env.DB
+              .prepare(
+                `INSERT INTO conversations
+                 (session_id, role, message)
+                 VALUES (?, ?, ?)`
+              )
+              .bind(
+                sessionId,
+                "assistant",
+                answer
+              )
+          ]);
+        }
+
+        // =========================
+        // SUCCESS
+        // =========================
+
+        return json(
           {
-            status: 200,
-
-            headers: {
-              "Content-Type":
-                "text/event-stream",
-
-              "Cache-Control":
-                "no-cache, no-transform",
-
-              "Connection":
-                "keep-alive",
-
-              ...cors
-            }
-          }
+            answer,
+            sessionId
+          },
+          200,
+          cors
         );
 
       } catch (error) {
-
         console.error(
-          "Worker error:",
+          "RS AI Worker error:",
           error
         );
 
@@ -185,23 +278,16 @@ export default {
 
 
 // =========================
-// JSON RESPONSE
+// JSON HELPER
 // =========================
 
-function json(
-  data,
-  status = 200,
-  cors = {}
-) {
+function json(data, status = 200, cors = {}) {
   return new Response(
     JSON.stringify(data),
     {
-      status: status,
-
+      status,
       headers: {
-        "Content-Type":
-          "application/json",
-
+        "Content-Type": "application/json",
         ...cors
       }
     }
