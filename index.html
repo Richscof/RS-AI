@@ -260,7 +260,6 @@
 
   <div class="app">
 
-    <!-- HEADER -->
     <header class="header">
 
       <div class="logo">
@@ -282,7 +281,6 @@
     </header>
 
 
-    <!-- WELCOME -->
     <section class="welcome">
 
       <h1>Hello 👋</h1>
@@ -294,114 +292,47 @@
     </section>
 
 
-    <!-- AI TOOLS -->
     <section class="tools">
 
       <div class="tool" onclick="selectTool('Chat AI')">
-
-        <div class="tool-icon">
-          🤖
-        </div>
-
-        <h3>
-          Chat AI
-        </h3>
-
-        <p>
-          Ask anything
-        </p>
-
+        <div class="tool-icon">🤖</div>
+        <h3>Chat AI</h3>
+        <p>Ask anything</p>
       </div>
-
 
       <div class="tool" onclick="selectTool('AI Image')">
-
-        <div class="tool-icon">
-          🎨
-        </div>
-
-        <h3>
-          AI Image
-        </h3>
-
-        <p>
-          Create images
-        </p>
-
+        <div class="tool-icon">🎨</div>
+        <h3>AI Image</h3>
+        <p>Create images</p>
       </div>
-
 
       <div class="tool" onclick="selectTool('AI Cartoon')">
-
-        <div class="tool-icon">
-          🧑‍🎨
-        </div>
-
-        <h3>
-          AI Cartoon
-        </h3>
-
-        <p>
-          Create cartoons
-        </p>
-
+        <div class="tool-icon">🧑‍🎨</div>
+        <h3>AI Cartoon</h3>
+        <p>Create cartoons</p>
       </div>
-
 
       <div class="tool" onclick="selectTool('AI Reel')">
-
-        <div class="tool-icon">
-          🎬
-        </div>
-
-        <h3>
-          AI Reel
-        </h3>
-
-        <p>
-          Create videos
-        </p>
-
+        <div class="tool-icon">🎬</div>
+        <h3>AI Reel</h3>
+        <p>Create videos</p>
       </div>
-
 
       <div class="tool" onclick="selectTool('AI Music')">
-
-        <div class="tool-icon">
-          🎵
-        </div>
-
-        <h3>
-          AI Music
-        </h3>
-
-        <p>
-          Create music
-        </p>
-
+        <div class="tool-icon">🎵</div>
+        <h3>AI Music</h3>
+        <p>Create music</p>
       </div>
 
-
       <div class="tool" onclick="selectTool('AI Voice')">
-
-        <div class="tool-icon">
-          🎙️
-        </div>
-
-        <h3>
-          AI Voice
-        </h3>
-
-        <p>
-          Voice tools
-        </p>
-
+        <div class="tool-icon">🎙️</div>
+        <h3>AI Voice</h3>
+        <p>Voice tools</p>
       </div>
 
     </section>
 
 
-    <!-- CHAT -->
     <section class="chat-box">
 
       <textarea
@@ -409,7 +340,6 @@
         placeholder="Ask RS AI anything..."
         autocomplete="off"
       ></textarea>
-
 
       <div class="chat-actions">
 
@@ -427,7 +357,6 @@
 
         </label>
 
-
         <button
           id="sendButton"
           class="send"
@@ -442,11 +371,9 @@
     </section>
 
 
-    <!-- MESSAGE / AI RESPONSE -->
     <div id="message"></div>
 
 
-    <!-- PREMIUM -->
     <section class="premium">
 
       <h3>
@@ -467,7 +394,6 @@
     </section>
 
 
-    <!-- FOOTER -->
     <div class="footer">
       RS AI • Your AI. Your creativity.
     </div>
@@ -494,12 +420,11 @@
         "?";
 
       box.focus();
-
     }
 
 
     // ==========================
-    // SEND MESSAGE TO RS AI
+    // SEND MESSAGE
     // ==========================
 
     async function sendMessage() {
@@ -517,7 +442,7 @@
         document.getElementById("sendButton");
 
 
-      // Empty message
+      // Check empty message
       if (!prompt) {
 
         message.style.display = "block";
@@ -529,7 +454,7 @@
       }
 
 
-      // Loading
+      // Show loading
       message.style.display = "block";
 
       message.innerText =
@@ -561,10 +486,17 @@
           );
 
 
-        // Read response safely
+        // Get raw server response
         const text =
           await response.text();
 
+        console.log(
+          "RS AI raw response:",
+          text
+        );
+
+
+        // Convert JSON
         let data;
 
         try {
@@ -572,42 +504,57 @@
           data =
             JSON.parse(text);
 
-        } catch {
+        } catch (parseError) {
 
           throw new Error(
-            "Server returned an invalid response."
+            "Server returned an invalid response:\n" +
+            text
           );
 
         }
 
 
         console.log(
-          "RS AI API response:",
+          "RS AI data:",
           data
         );
 
 
-        // API error
+        // ==========================
+        // IMPORTANT ERROR HANDLING
+        // ==========================
+
         if (!response.ok) {
 
-          throw new Error(
-            data.error ||
-            "API request failed."
-          );
+          const realError =
+            data?.details ||
+            data?.error ||
+            "Unknown API error.";
 
+          throw new Error(
+            realError
+          );
         }
 
 
-        // Successful answer
-        if (data.answer) {
+        // ==========================
+        // SUCCESS
+        // ==========================
+
+        if (
+          data &&
+          typeof data.answer === "string" &&
+          data.answer.trim()
+        ) {
 
           message.innerText =
             data.answer;
 
         } else {
 
-          message.innerText =
-            "RS AI returned no answer.";
+          throw new Error(
+            "Gemini returned no answer."
+          );
 
         }
 
@@ -615,18 +562,20 @@
       } catch (error) {
 
         console.error(
-          "RS AI error:",
+          "RS AI ERROR:",
           error
         );
 
 
-        // IMPORTANT:
-        // Show the real error
-        // instead of hiding it.
+        message.style.display =
+          "block";
 
         message.innerText =
           "RS AI Error:\n\n" +
-          error.message;
+          (
+            error?.message ||
+            String(error)
+          );
 
       } finally {
 
@@ -642,16 +591,20 @@
 
 
     // ==========================
-    // IMAGE SELECTED
+    // IMAGE
     // ==========================
 
     function imageSelected() {
 
       const input =
-        document.getElementById("imageInput");
+        document.getElementById(
+          "imageInput"
+        );
 
       const message =
-        document.getElementById("message");
+        document.getElementById(
+          "message"
+        );
 
 
       if (
@@ -668,9 +621,7 @@
         message.innerText =
           "Image selected successfully. 🖼️\n\n" +
           file.name;
-
       }
-
     }
 
 
@@ -681,14 +632,15 @@
     function premiumMessage() {
 
       const message =
-        document.getElementById("message");
+        document.getElementById(
+          "message"
+        );
 
       message.style.display =
         "block";
 
       message.innerText =
         "Premium payment will be connected later. 💎";
-
     }
 
 
@@ -710,9 +662,7 @@
             event.preventDefault();
 
             sendMessage();
-
           }
-
         }
       );
 
