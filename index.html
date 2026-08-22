@@ -19,6 +19,149 @@ body{
   min-height:100vh;
 }
 
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar{
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+  width:280px;
+  background:#0b1122;
+  border-right:1px solid #202b48;
+  padding:18px;
+  z-index:1000;
+  transform:translateX(-100%);
+  transition:.25s;
+  display:flex;
+  flex-direction:column;
+}
+
+.sidebar.open{
+  transform:translateX(0);
+}
+
+.sidebar-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:18px;
+}
+
+.sidebar-title{
+  font-size:20px;
+  font-weight:bold;
+}
+
+.close-sidebar{
+  background:#151e35;
+  border:0;
+  color:white;
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.new-chat{
+  width:100%;
+  background:linear-gradient(135deg,#7b2cff,#00bfff);
+  color:white;
+  border:0;
+  padding:12px;
+  border-radius:12px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-bottom:18px;
+}
+
+.history-title{
+  color:#7e8aa5;
+  font-size:12px;
+  margin-bottom:10px;
+  text-transform:uppercase;
+}
+
+.history-list{
+  overflow-y:auto;
+  flex:1;
+}
+
+.history-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:#11182d;
+  border:1px solid transparent;
+  border-radius:12px;
+  padding:11px;
+  margin-bottom:8px;
+  cursor:pointer;
+}
+
+.history-item:hover{
+  border-color:#00d9ff;
+}
+
+.history-text{
+  flex:1;
+  min-width:0;
+}
+
+.history-name{
+  font-size:14px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.history-date{
+  color:#65718a;
+  font-size:10px;
+  margin-top:4px;
+}
+
+.delete-history{
+  background:transparent;
+  color:#78849d;
+  border:0;
+  cursor:pointer;
+  padding:5px;
+}
+
+.delete-history:hover{
+  color:#ff5d70;
+}
+
+.no-history{
+  color:#65718a;
+  font-size:13px;
+  text-align:center;
+  padding:20px 5px;
+}
+
+/* =========================
+   OVERLAY
+========================= */
+
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  z-index:900;
+  display:none;
+}
+
+.overlay.show{
+  display:block;
+}
+
+/* =========================
+   APP
+========================= */
+
 .app{
   max-width:650px;
   margin:auto;
@@ -31,6 +174,23 @@ body{
   align-items:center;
   justify-content:space-between;
   margin-bottom:25px;
+}
+
+.header-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.menu-button{
+  background:#11182d;
+  color:white;
+  border:1px solid #202b48;
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  font-size:20px;
+  cursor:pointer;
 }
 
 .logo{
@@ -68,6 +228,10 @@ body{
   color:#b9c5df;
 }
 
+/* =========================
+   WELCOME
+========================= */
+
 .welcome{
   margin-bottom:22px;
 }
@@ -81,6 +245,10 @@ body{
   color:#8994ad;
   line-height:1.5;
 }
+
+/* =========================
+   TOOLS
+========================= */
 
 .tools{
   display:grid;
@@ -117,6 +285,10 @@ body{
   color:#7e8aa5;
   font-size:12px;
 }
+
+/* =========================
+   CHAT
+========================= */
 
 .chat-area{
   display:flex;
@@ -203,17 +375,9 @@ button,
   opacity:.6;
 }
 
-.history-buttons{
-  display:flex;
-  gap:8px;
-  margin:12px 0;
-}
-
-.history-buttons button{
-  background:#11182d;
-  color:#c8d2e8;
-  border:1px solid #202b48;
-}
+/* =========================
+   PREMIUM
+========================= */
 
 .premium{
   margin-top:18px;
@@ -242,6 +406,10 @@ button,
   color:#101426;
 }
 
+/* =========================
+   FOOTER
+========================= */
+
 .footer{
   text-align:center;
   color:#59657d;
@@ -251,6 +419,7 @@ button,
 }
 
 @media(max-width:420px){
+
   .app{
     padding:14px;
   }
@@ -266,162 +435,241 @@ button,
   .message{
     max-width:94%;
   }
+
+  .sidebar{
+    width:85%;
+  }
 }
 </style>
 </head>
 
 <body>
 
+<!-- =========================
+     SIDEBAR
+========================= -->
+
+<aside id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+
+    <div class="sidebar-title">
+      💬 Chats
+    </div>
+
+    <button
+      class="close-sidebar"
+      onclick="closeSidebar()"
+    >
+      ✕
+    </button>
+
+  </div>
+
+  <button
+    class="new-chat"
+    onclick="newChat()"
+  >
+    ＋ New Chat
+  </button>
+
+  <div class="history-title">
+    Recent chats
+  </div>
+
+  <div
+    id="historyList"
+    class="history-list"
+  >
+    <div class="no-history">
+      Loading chats...
+    </div>
+  </div>
+
+</aside>
+
+
+<div
+  id="overlay"
+  class="overlay"
+  onclick="closeSidebar()"
+></div>
+
+
+<!-- =========================
+     APP
+========================= -->
+
 <div class="app">
 
 <header class="header">
 
-<div class="logo">
+  <div class="header-left">
 
-<div class="logo-icon">
-RS
-</div>
+    <button
+      class="menu-button"
+      onclick="openSidebar()"
+    >
+      ☰
+    </button>
 
-<div class="logo-text">
-RS <span>AI</span>
-</div>
+    <div class="logo">
 
-</div>
+      <div class="logo-icon">
+        RS
+      </div>
 
-<div class="credits">
-⚡ 20 Credits
-</div>
+      <div class="logo-text">
+        RS <span>AI</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="credits">
+    ⚡ 20 Credits
+  </div>
 
 </header>
 
 
 <section class="welcome">
 
-<h1>Hello 👋</h1>
+  <h1>Hello 👋</h1>
 
-<p>
-Welcome to RS AI — your fast artificial intelligence assistant.
-</p>
+  <p>
+    Welcome to RS AI — your fast artificial intelligence assistant.
+  </p>
 
 </section>
 
 
 <section class="tools">
 
-<div class="tool" onclick="selectTool('Chat AI')">
-<div class="tool-icon">🤖</div>
-<h3>Chat AI</h3>
-<p>Ask anything</p>
-</div>
+  <div
+    class="tool"
+    onclick="selectTool('Chat AI')"
+  >
+    <div class="tool-icon">🤖</div>
+    <h3>Chat AI</h3>
+    <p>Ask anything</p>
+  </div>
 
-<div class="tool" onclick="selectTool('AI Image')">
-<div class="tool-icon">🎨</div>
-<h3>AI Image</h3>
-<p>Create images</p>
-</div>
+  <div
+    class="tool"
+    onclick="selectTool('AI Image')"
+  >
+    <div class="tool-icon">🎨</div>
+    <h3>AI Image</h3>
+    <p>Create images</p>
+  </div>
 
-<div class="tool" onclick="selectTool('AI Cartoon')">
-<div class="tool-icon">🧑‍🎨</div>
-<h3>AI Cartoon</h3>
-<p>Create cartoons</p>
-</div>
+  <div
+    class="tool"
+    onclick="selectTool('AI Cartoon')"
+  >
+    <div class="tool-icon">🧑‍🎨</div>
+    <h3>AI Cartoon</h3>
+    <p>Create cartoons</p>
+  </div>
 
-<div class="tool" onclick="selectTool('AI Reel')">
-<div class="tool-icon">🎬</div>
-<h3>AI Reel</h3>
-<p>Create videos</p>
-</div>
+  <div
+    class="tool"
+    onclick="selectTool('AI Reel')"
+  >
+    <div class="tool-icon">🎬</div>
+    <h3>AI Reel</h3>
+    <p>Create videos</p>
+  </div>
 
-<div class="tool" onclick="selectTool('AI Music')">
-<div class="tool-icon">🎵</div>
-<h3>AI Music</h3>
-<p>Create music</p>
-</div>
+  <div
+    class="tool"
+    onclick="selectTool('AI Music')"
+  >
+    <div class="tool-icon">🎵</div>
+    <h3>AI Music</h3>
+    <p>Create music</p>
+  </div>
 
-<div class="tool" onclick="selectTool('AI Voice')">
-<div class="tool-icon">🎙️</div>
-<h3>AI Voice</h3>
-<p>Voice tools</p>
-</div>
+  <div
+    class="tool"
+    onclick="selectTool('AI Voice')"
+  >
+    <div class="tool-icon">🎙️</div>
+    <h3>AI Voice</h3>
+    <p>Voice tools</p>
+  </div>
 
 </section>
 
 
-<!-- CHAT HISTORY -->
+<!-- CHAT AREA -->
 
-<div id="chatArea" class="chat-area"></div>
+<div
+  id="chatArea"
+  class="chat-area"
+></div>
 
 
 <!-- INPUT -->
 
 <section class="chat-box">
 
-<textarea
-id="prompt"
-placeholder="Ask RS AI anything..."
-></textarea>
+  <textarea
+    id="prompt"
+    placeholder="Ask RS AI anything..."
+    autocomplete="off"
+  ></textarea>
 
-<div class="chat-actions">
+  <div class="chat-actions">
 
-<label class="upload">
+    <label class="upload">
 
-📎 Image
+      📎 Image
 
-<input
-id="imageInput"
-type="file"
-accept="image/*"
-hidden
-onchange="imageSelected()"
-/>
+      <input
+        id="imageInput"
+        type="file"
+        accept="image/*"
+        hidden
+        onchange="imageSelected()"
+      >
 
-</label>
+    </label>
 
-<button
-id="sendButton"
-class="send"
-onclick="sendMessage()"
->
-Send ➤
-</button>
+    <button
+      id="sendButton"
+      class="send"
+      onclick="sendMessage()"
+    >
+      Send ➤
+    </button>
 
-</div>
+  </div>
 
 </section>
 
 
-<!-- HISTORY CONTROLS -->
-
-<div class="history-buttons">
-
-<button onclick="newChat()">
-➕ New Chat
-</button>
-
-<button onclick="clearChat()">
-🗑️ Clear
-</button>
-
-</div>
-
-
 <section class="premium">
 
-<h3>💎 Upgrade to Premium</h3>
+  <h3>
+    💎 Upgrade to Premium
+  </h3>
 
-<p>
-More credits, more AI tools and an ad-free experience.
-</p>
+  <p>
+    More credits, more AI tools and an ad-free experience.
+  </p>
 
-<button onclick="premiumMessage()">
-Premium — $5/month
-</button>
+  <button onclick="premiumMessage()">
+    Premium — $5/month
+  </button>
 
 </section>
 
 
 <div class="footer">
-RS AI • Your AI. Your creativity.
+  RS AI • Your AI. Your creativity.
 </div>
 
 </div>
@@ -429,9 +677,9 @@ RS AI • Your AI. Your creativity.
 
 <script>
 
-/* =========================
+/* =====================================================
    SESSION
-========================= */
+===================================================== */
 
 let sessionId =
 localStorage.getItem("rs_ai_session");
@@ -445,82 +693,464 @@ if(!sessionId){
     "rs_ai_session",
     sessionId
   );
+
 }
 
 
-/* =========================
-   SELECT TOOL
-========================= */
+/* =====================================================
+   SIDEBAR
+===================================================== */
 
-function selectTool(tool){
+function openSidebar(){
 
-  const prompt =
-  document.getElementById("prompt");
-
-  prompt.placeholder =
-  "What do you want RS AI to do with " +
-  tool +
-  "?";
-
-  prompt.focus();
-}
-
-
-/* =========================
-   ADD MESSAGE
-========================= */
-
-function addMessage(
-  text,
-  type
-){
-
-  const chatArea =
-  document.getElementById("chatArea");
-
-  const div =
-  document.createElement("div");
-
-  div.className =
-  "message " + type;
-
-  div.innerText =
-  text;
-
-  chatArea.appendChild(div);
-
-  window.scrollTo({
-    top:document.body.scrollHeight,
-    behavior:"smooth"
-  });
-
-  return div;
-}
-
-
-/* =========================
-   SEND MESSAGE
-========================= */
-
-async function sendMessage(){
-
-  const prompt =
   document
-  .getElementById("prompt")
-  .value
-  .trim();
+    .getElementById("sidebar")
+    .classList.add("open");
 
-  const sendButton =
   document
-  .getElementById("sendButton");
+    .getElementById("overlay")
+    .classList.add("show");
 
-  if(!prompt){
+  loadHistory();
 
+}
+
+
+function closeSidebar(){
+
+  document
+    .getElementById("sidebar")
+    .classList.remove("open");
+
+  document
+    .getElementById("overlay")
+    .classList.remove("show");
+
+}
+
+
+/* =====================================================
+   LOAD HISTORY
+===================================================== */
+
+async function loadHistory(){
+
+  const list =
+    document.getElementById(
+      "historyList"
+    );
+
+  list.innerHTML =
+    `<div class="no-history">
+      Loading chats...
+    </div>`;
+
+  try{
+
+    const response =
+      await fetch(
+        "/api/history"
+      );
+
+    const data =
+      await response.json();
+
+    if(!response.ok){
+
+      throw new Error(
+        data.error ||
+        "Could not load history."
+      );
+
+    }
+
+    const history =
+      data.history || [];
+
+    if(history.length === 0){
+
+      list.innerHTML =
+        `<div class="no-history">
+          No conversations yet.
+        </div>`;
+
+      return;
+
+    }
+
+    list.innerHTML = "";
+
+    history.forEach(chat => {
+
+      const item =
+        document.createElement("div");
+
+      item.className =
+        "history-item";
+
+      const text =
+        document.createElement("div");
+
+      text.className =
+        "history-text";
+
+      const name =
+        document.createElement("div");
+
+      name.className =
+        "history-name";
+
+      name.innerText =
+        chat.title ||
+        "New conversation";
+
+      const date =
+        document.createElement("div");
+
+      date.className =
+        "history-date";
+
+      date.innerText =
+        formatDate(chat.updatedAt);
+
+      text.appendChild(name);
+      text.appendChild(date);
+
+
+      const deleteButton =
+        document.createElement("button");
+
+      deleteButton.className =
+        "delete-history";
+
+      deleteButton.innerText =
+        "🗑️";
+
+      deleteButton.onclick =
+        function(event){
+
+          event.stopPropagation();
+
+          deleteConversation(
+            chat.sessionId
+          );
+
+        };
+
+
+      item.appendChild(text);
+      item.appendChild(deleteButton);
+
+
+      item.onclick =
+        function(){
+
+          loadConversation(
+            chat.sessionId
+          );
+
+        };
+
+
+      list.appendChild(item);
+
+    });
+
+  }catch(error){
+
+    list.innerHTML =
+      `<div class="no-history">
+        Could not load chats.
+      </div>`;
+
+    console.error(
+      "History error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   LOAD ONE CONVERSATION
+===================================================== */
+
+async function loadConversation(id){
+
+  try{
+
+    const response =
+      await fetch(
+        "/api/history/chat?sessionId=" +
+        encodeURIComponent(id)
+      );
+
+    const data =
+      await response.json();
+
+    if(!response.ok){
+
+      throw new Error(
+        data.error ||
+        "Could not load conversation."
+      );
+
+    }
+
+
+    sessionId = id;
+
+    localStorage.setItem(
+      "rs_ai_session",
+      sessionId
+    );
+
+
+    const chatArea =
+      document.getElementById(
+        "chatArea"
+      );
+
+    chatArea.innerHTML = "";
+
+
+    const messages =
+      data.messages || [];
+
+    messages.forEach(item => {
+
+      if(
+        item.role === "user"
+      ){
+
+        addMessage(
+          item.message,
+          "user",
+          false
+        );
+
+      }else if(
+        item.role === "assistant"
+      ){
+
+        addMessage(
+          item.message,
+          "ai",
+          false
+        );
+
+      }
+
+    });
+
+
+    closeSidebar();
+
+    window.scrollTo({
+      top:0,
+      behavior:"smooth"
+    });
+
+  }catch(error){
+
+    alert(
+      error.message ||
+      "Could not load chat."
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   DELETE CONVERSATION
+===================================================== */
+
+async function deleteConversation(id){
+
+  const confirmDelete =
+    confirm(
+      "Delete this conversation?"
+    );
+
+  if(!confirmDelete){
     return;
   }
 
 
-  // Show user message
+  try{
+
+    const response =
+      await fetch(
+        "/api/history/delete",
+        {
+          method:"DELETE",
+
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
+
+          body:JSON.stringify({
+            sessionId:id
+          })
+
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if(!response.ok){
+
+      throw new Error(
+        data.error ||
+        "Delete failed."
+      );
+
+    }
+
+
+    if(id === sessionId){
+
+      newChat();
+
+    }
+
+
+    loadHistory();
+
+
+  }catch(error){
+
+    alert(
+      error.message ||
+      "Could not delete conversation."
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   FORMAT DATE
+===================================================== */
+
+function formatDate(date){
+
+  if(!date){
+    return "";
+  }
+
+  try{
+
+    return new Date(
+      date
+    ).toLocaleString();
+
+  }catch{
+
+    return "";
+
+  }
+
+}
+
+
+/* =====================================================
+   SELECT TOOL
+===================================================== */
+
+function selectTool(tool){
+
+  const prompt =
+    document.getElementById(
+      "prompt"
+    );
+
+  prompt.placeholder =
+    "What do you want RS AI to do with " +
+    tool +
+    "?";
+
+  prompt.focus();
+
+}
+
+
+/* =====================================================
+   ADD MESSAGE
+===================================================== */
+
+function addMessage(
+  text,
+  type,
+  scroll = true
+){
+
+  const chatArea =
+    document.getElementById(
+      "chatArea"
+    );
+
+  const div =
+    document.createElement(
+      "div"
+    );
+
+  div.className =
+    "message " + type;
+
+  div.innerText =
+    text;
+
+  chatArea.appendChild(div);
+
+
+  if(scroll){
+
+    window.scrollTo({
+      top:
+        document.body.scrollHeight,
+      behavior:"smooth"
+    });
+
+  }
+
+
+  return div;
+
+}
+
+
+/* =====================================================
+   SEND MESSAGE
+===================================================== */
+
+async function sendMessage(){
+
+  const prompt =
+    document
+      .getElementById("prompt")
+      .value
+      .trim();
+
+  const sendButton =
+    document.getElementById(
+      "sendButton"
+    );
+
+
+  if(!prompt){
+    return;
+  }
+
 
   addMessage(
     prompt,
@@ -528,51 +1158,48 @@ async function sendMessage(){
   );
 
 
-  // Clear input
-
   document
-  .getElementById("prompt")
-  .value="";
+    .getElementById("prompt")
+    .value = "";
 
-
-  // Loading message
 
   const loading =
-  addMessage(
-    "RS AI is thinking... ⚡",
-    "ai loading"
-  );
+    addMessage(
+      "RS AI is thinking... ⚡",
+      "ai loading"
+    );
 
 
-  sendButton.disabled=true;
+  sendButton.disabled = true;
 
 
   try{
 
     const response =
-    await fetch(
-      "/api/chat",
-      {
-        method:"POST",
+      await fetch(
+        "/api/chat",
+        {
+          method:"POST",
 
-        headers:{
-          "Content-Type":
-          "application/json"
-        },
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
 
-        body:JSON.stringify({
+          body:JSON.stringify({
 
-          message:prompt,
+            message:prompt,
 
-          sessionId:sessionId
+            sessionId:sessionId
 
-        })
-      }
-    );
+          })
+
+        }
+      );
 
 
     const text =
-    await response.text();
+      await response.text();
 
 
     let data;
@@ -581,7 +1208,7 @@ async function sendMessage(){
     try{
 
       data =
-      JSON.parse(text);
+        JSON.parse(text);
 
     }catch{
 
@@ -603,12 +1230,8 @@ async function sendMessage(){
     }
 
 
-    // Remove loading
-
     loading.remove();
 
-
-    // Show answer
 
     addMessage(
       data.answer ||
@@ -617,12 +1240,10 @@ async function sendMessage(){
     );
 
 
-    // Save session
-
     if(data.sessionId){
 
       sessionId =
-      data.sessionId;
+        data.sessionId;
 
       localStorage.setItem(
         "rs_ai_session",
@@ -632,72 +1253,77 @@ async function sendMessage(){
     }
 
 
+    /*
+      Update history immediately.
+    */
+
+    loadHistory();
+
+
   }catch(error){
 
     loading.innerText =
-    "RS AI Error:\n\n" +
-    (
-      error.message ||
-      String(error)
-    );
+      "RS AI Error:\n\n" +
+      (
+        error.message ||
+        String(error)
+      );
 
   }finally{
 
-    sendButton.disabled=false;
+    sendButton.disabled =
+      false;
 
   }
 
 }
 
 
-/* =========================
+/* =====================================================
    NEW CHAT
-========================= */
+===================================================== */
 
 function newChat(){
 
   sessionId =
-  crypto.randomUUID();
+    crypto.randomUUID();
 
   localStorage.setItem(
     "rs_ai_session",
     sessionId
   );
 
-  document
-  .getElementById("chatArea")
-  .innerHTML="";
 
   document
-  .getElementById("prompt")
-  .value="";
+    .getElementById(
+      "chatArea"
+    )
+    .innerHTML = "";
+
+
+  document
+    .getElementById(
+      "prompt"
+    )
+    .value = "";
+
+
+  closeSidebar();
 
 }
 
 
-/* =========================
-   CLEAR CURRENT CHAT
-========================= */
-
-function clearChat(){
-
-  document
-  .getElementById("chatArea")
-  .innerHTML="";
-
-}
-
-
-/* =========================
+/* =====================================================
    IMAGE
-========================= */
+===================================================== */
 
 function imageSelected(){
 
   const input =
-  document.getElementById(
-    "imageInput"
-  );
+    document.getElementById(
+      "imageInput"
+    );
+
 
   if(
     input.files &&
@@ -715,9 +1341,9 @@ function imageSelected(){
 }
 
 
-/* =========================
+/* =====================================================
    PREMIUM
-========================= */
+===================================================== */
 
 function premiumMessage(){
 
@@ -729,29 +1355,36 @@ function premiumMessage(){
 }
 
 
-/* =========================
+/* =====================================================
    ENTER TO SEND
-========================= */
+===================================================== */
 
 document
-.getElementById("prompt")
-.addEventListener(
-  "keydown",
-  function(event){
+  .getElementById("prompt")
+  .addEventListener(
+    "keydown",
+    function(event){
 
-    if(
-      event.key==="Enter" &&
-      !event.shiftKey
-    ){
+      if(
+        event.key === "Enter" &&
+        !event.shiftKey
+      ){
 
-      event.preventDefault();
+        event.preventDefault();
 
-      sendMessage();
+        sendMessage();
+
+      }
 
     }
+  );
 
-  }
-);
+
+/* =====================================================
+   START
+===================================================== */
+
+loadHistory();
 
 </script>
 
